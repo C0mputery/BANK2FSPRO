@@ -7,4 +7,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Fmod5Sharp" Version="3.1.0" />
+      <PackageReference Include="FModBankParser" Version="1.2.0" />
+    </ItemGroup>
+
 </Project>
