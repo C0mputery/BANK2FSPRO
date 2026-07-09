@@ -1,4 +1,5 @@
-﻿using Fmod5Sharp.FmodTypes;
+﻿using System.Xml.Linq;
+using Fmod5Sharp.FmodTypes;
 using FModBankParser;
 using FModBankParser.Nodes;
 using FModBankParser.Nodes.Buses;
@@ -90,18 +91,16 @@ public partial class Decompiler {
                     if (!_collectedBank.SoundNameToGuid.TryGetValue(samples.Name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
 
                     string assetPath = filePath.Replace("\\", "/");
-                    XmlBuilder.Save(
-                        XmlBuilder.CreateDocument(
-                            XmlBuilder.Object("AudioFile", soundGuid,
-                                XmlBuilder.Property("assetPath", assetPath),
-                                XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
-                                XmlBuilder.Property("channelCount", samples.Metadata.Channels),
-                                XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
-                                XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
-                            )
-                        ),
-                        Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml")
+                    XDocument document = XmlBuilder.CreateDocument(
+                        XmlBuilder.Object("AudioFile", soundGuid,
+                            XmlBuilder.Property("assetPath", assetPath),
+                            XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
+                            XmlBuilder.Property("channelCount", samples.Metadata.Channels),
+                            XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
+                            XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
+                        )
                     );
+                    document.Save(Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml"));
                 }
             }
         }

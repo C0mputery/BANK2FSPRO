@@ -48,9 +48,4 @@ internal static class XmlBuilder {
             destinations.Select(d => new XElement("destination", d.AsFmodStringFormat()))
         );
     }
-
-    public static void Save(XDocument document, string path) {
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        document.Save(path);
-    }
 }
