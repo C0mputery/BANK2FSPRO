@@ -19,8 +19,8 @@ public partial class Decompiler {
     private string _snapshotGroupMetadataDirectory = string.Empty;
 
     private void SetupDirectories() {
-        _assetsDirectory = Path.Combine(_outputDirectory, "Assets");
-        _metadataDirectory = Path.Combine(_outputDirectory, "Metadata");
+        _assetsDirectory = Path.Combine(outputDirectory, "Assets");
+        _metadataDirectory = Path.Combine(outputDirectory, "Metadata");
         _audioFileMetadataDirectory = Path.Combine(_metadataDirectory, "AudioFile");
         _bankMetadataDirectory = Path.Combine(_metadataDirectory, "Bank");
         _assetMetadataDirectory = Path.Combine(_metadataDirectory, "Asset");
@@ -34,9 +34,9 @@ public partial class Decompiler {
         _sandboxFolderMetadataDirectory = Path.Combine(_metadataDirectory, "SandboxFolder");
         _snapshotGroupMetadataDirectory = Path.Combine(_metadataDirectory, "SnapshotGroup");
 
-        if (Directory.Exists(_outputDirectory)) { Directory.Delete(_outputDirectory, true); }
+        if (Directory.Exists(outputDirectory)) { Directory.Delete(outputDirectory, true); }
 
-        Directory.CreateDirectory(_outputDirectory);
+        Directory.CreateDirectory(outputDirectory);
         Directory.CreateDirectory(_assetsDirectory);
         Directory.CreateDirectory(_metadataDirectory);
         Directory.CreateDirectory(_audioFileMetadataDirectory);
@@ -52,8 +52,7 @@ public partial class Decompiler {
         Directory.CreateDirectory(_sandboxFolderMetadataDirectory);
         Directory.CreateDirectory(_snapshotGroupMetadataDirectory);
 
-        foreach (FModReader bank in _banks) {
-            if (bank.SoundBankData.Count == 0) { continue; }
+        foreach (FModReader bank in banks) {
             Directory.CreateDirectory(Path.Combine(_assetsDirectory, bank.BankName));
         }
     }

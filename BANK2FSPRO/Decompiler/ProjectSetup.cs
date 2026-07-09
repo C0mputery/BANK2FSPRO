@@ -13,7 +13,7 @@ public partial class Decompiler {
 
     private void CreateFsproFile() {
         XDocument document = XmlBuilder.CreateDocument();
-        document.Save(Path.Combine(_outputDirectory, $"{_projectName}.fspro"));
+        document.Save(Path.Combine(outputDirectory, $"{projectName}.fspro"));
     }
 
     private void CreateBuiltinMetadata() {
@@ -131,11 +131,11 @@ public partial class Decompiler {
     }
 
     private void CreateBankMetadata() {
-        foreach (FModReader bank in _banks) {
+        foreach (FModReader bank in banks) {
             string bankName = Path.GetFileNameWithoutExtension(bank.BankName);
             string bankAssetPath = $"{bankName}/";
             
-            bool isMasterBank = bank == _masterBank;
+            bool isMasterBank = bank == masterBank;
 
             Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
             if (isMasterBank) {
@@ -158,7 +158,7 @@ public partial class Decompiler {
                 document.Save(Path.Combine(_bankMetadataDirectory, $"{bankGuid.AsFmodStringFormat()}.xml"));
             }
 
-            Guid assetGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{_projectName}/Asset/{bankAssetPath}");
+            Guid assetGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/Asset/{bankAssetPath}");
             XDocument assetDocument = XmlBuilder.CreateDocument(
                 XmlBuilder.Object("EncodableAsset", assetGuid,
                     XmlBuilder.Property("assetPath", bankAssetPath),

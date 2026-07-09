@@ -10,20 +10,8 @@ using FModBankParser.Objects;
 
 namespace BANK2FSPRO;
 
-public partial class Decompiler {
-    public Decompiler(string outputDirectory, FModReader stringBank, FModReader masterBank, FModReader[] banks, string projectName = "DecompiledProject") {
-        _outputDirectory = outputDirectory;
-        _stringBank = stringBank;
-        _masterBank = masterBank;
-        _banks = banks;
-        _projectName = projectName;
-    }
-
-    private readonly string _outputDirectory;
-    private readonly FModReader _stringBank;
-    private readonly FModReader _masterBank;
-    private readonly FModReader[] _banks;
-    private readonly string _projectName;
+public partial class Decompiler(string outputDirectory, FModReader stringBank, FModReader masterBank, FModReader[] banks, string projectName = "DecompiledProject") {
+    private readonly FModReader _stringBank = stringBank;
     private readonly CollectedBank _collectedBank = new CollectedBank();
 
     public readonly Dictionary<string, FModGuid> SoundFileReferences = new Dictionary<string, FModGuid>();
@@ -40,7 +28,7 @@ public partial class Decompiler {
     }
 
     private void CollectNodes() {
-        foreach (FModReader bank in _banks) {
+        foreach (FModReader bank in banks) {
             foreach ((FModGuid key, EventNode node) in bank.EventNodes) { _collectedBank.EventNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, BaseBusNode node) in bank.BusNodes) { _collectedBank.BusNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, BaseEffectNode node) in bank.EffectNodes) { _collectedBank.EffectNodes.TryAdd(key.ToGuid(), node); }
@@ -76,7 +64,7 @@ public partial class Decompiler {
     }
 
     private void ExtractSoundFiles() {
-        foreach (FModReader bank in _banks) {
+        foreach (FModReader bank in banks) {
             if (bank.SoundBankData.Count == 0) { continue; }
 
             string soundFileDirectory = Path.Combine(_assetsDirectory, bank.BankName);
