@@ -22,6 +22,7 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
         SetupProjectFiles();
 
         CollectNodes();
+        _collectedBank.Debug();
         ExtractSoundFiles();
     }
 
