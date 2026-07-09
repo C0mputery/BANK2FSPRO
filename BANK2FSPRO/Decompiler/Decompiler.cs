@@ -67,7 +67,8 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
             
             if (bank.SoundBankData.Count == 0) { continue; }
 
-            string soundFileDirectory = Path.Combine(_assetsDirectory, bank.BankName);
+            string bankName = Path.GetFileNameWithoutExtension(bank.BankName);
+            string soundFileDirectory = Path.Combine(_assetsDirectory, bankName);
             Directory.CreateDirectory(soundFileDirectory);
 
             Directory.CreateDirectory(soundFileDirectory);

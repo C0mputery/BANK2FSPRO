@@ -430,3 +430,9 @@ FodyWeavers.xsd
 
 # rider
 .idea/
+
+# fmod
+TestProject/.cache/
+TestProject/.unsaved/
+TestProject/.user/
+TestProject/Build/
