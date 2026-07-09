@@ -8,8 +8,6 @@ public partial class Decompiler {
     private Guid _masterEncodingSettingGuid = Guid.Empty;
     private Guid _masterEffectPresetFolderGuid = Guid.Empty;
     private Guid _masterParameterPresetFolderGuid = Guid.Empty;
-    private Guid _masterProfilerFolderGuid = Guid.Empty;
-    private Guid _masterSandboxFolderGuid = Guid.Empty;
     private Guid _masterSnapshotListGuid = Guid.Empty;
     private Guid _masterMixerMasterGuid = Guid.Empty;
     private Guid _masterMixerGuid = Guid.Empty;
@@ -27,8 +25,6 @@ public partial class Decompiler {
         _masterEncodingSettingGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/EncodingSetting");
         _masterEffectPresetFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/MasterEffectPresetFolder");
         _masterParameterPresetFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/MasterParameterPresetFolder");
-        _masterProfilerFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/ProfilerSessionFolder");
-        _masterSandboxFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/MasterSandboxFolder");
         _masterSnapshotListGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/SnapshotList");
         _masterMixerMasterGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/MixerMaster");
         _masterMixerGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/Mixer");

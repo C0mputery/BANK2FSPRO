@@ -64,16 +64,6 @@ public partial class Decompiler {
         );
         masterParameterPresetFolderMetadata.Save(Path.Combine(_parameterPresetFolderMetadataDirectory, $"{_masterParameterPresetFolderGuid.AsFmodStringFormat()}.xml"));
 
-        XDocument profilerSessionFolderMetadata = XmlBuilder.CreateDocument(
-            XmlBuilder.Object("ProfilerSessionFolder", _masterProfilerFolderGuid)
-        );
-        profilerSessionFolderMetadata.Save(Path.Combine(_profilerFolderMetadataDirectory, $"{_masterProfilerFolderGuid.AsFmodStringFormat()}.xml"));
-
-        XDocument masterSandboxFolderMetadata = XmlBuilder.CreateDocument(
-            XmlBuilder.Object("MasterSandboxFolder", _masterSandboxFolderGuid)
-        );
-        masterSandboxFolderMetadata.Save(Path.Combine(_sandboxFolderMetadataDirectory, $"{_masterSandboxFolderGuid.AsFmodStringFormat()}.xml"));
-
         XDocument snapshotListMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("SnapshotList", _masterSnapshotListGuid,
                 XmlBuilder.Relationship("mixer", _masterMixerGuid)
@@ -92,7 +82,8 @@ public partial class Decompiler {
                 XmlBuilder.Relationship("effects", _masterFaderGuid)
             ),
             XmlBuilder.Object("MixerBusPanner", _masterPannerGuid,
-                XmlBuilder.Property("overridingOutputFormat", "2")
+                XmlBuilder.Property("overridingOutputFormat", "2"),
+                XmlBuilder.Property("outputFormatOverridden", "true")
             ),
             XmlBuilder.Object("MixerBusFader", _masterFaderGuid)
         );
@@ -120,10 +111,8 @@ public partial class Decompiler {
                 XmlBuilder.Relationship("masterEffectPresetFolder", _masterEffectPresetFolderGuid),
                 XmlBuilder.Relationship("masterParameterPresetFolder", _masterParameterPresetFolderGuid),
                 XmlBuilder.Relationship("masterBankFolder", _masterBankFolderGuid),
-                XmlBuilder.Relationship("masterSandboxFolder", _masterSandboxFolderGuid),
                 XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid),
                 XmlBuilder.Relationship("mixer", _masterMixerGuid),
-                XmlBuilder.Relationship("profilerSessionFolder", _masterProfilerFolderGuid),
                 XmlBuilder.Relationship("platforms", _masterPlatformGuid)
             )
         );
@@ -133,16 +122,12 @@ public partial class Decompiler {
     private void CreateBankMetadata() {
         foreach (FModReader bank in banks) {
             string bankName = Path.GetFileNameWithoutExtension(bank.BankName);
-            string bankAssetPath = $"{bankName}/";
-            
+            Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
             bool isMasterBank = bank == masterBank;
 
-            Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
             if (isMasterBank) {
                 XDocument document = XmlBuilder.CreateDocument(
-                    XmlBuilder.Object("Bank", bankGuid,
-                        XmlBuilder.Property("name", bankAssetPath),
-                        XmlBuilder.Property("isMasterBank", "true"),
+                    XmlBuilder.Object("MasterBank", bankGuid,
                         XmlBuilder.Relationship("folder", _masterBankFolderGuid)
                     )
                 );
@@ -151,21 +136,12 @@ public partial class Decompiler {
             else {
                 XDocument document = XmlBuilder.CreateDocument(
                     XmlBuilder.Object("Bank", bankGuid,
-                        XmlBuilder.Property("name", bankAssetPath),
+                        XmlBuilder.Property("name", bankName),
                         XmlBuilder.Relationship("folder", _masterBankFolderGuid)
                     )
                 );
                 document.Save(Path.Combine(_bankMetadataDirectory, $"{bankGuid.AsFmodStringFormat()}.xml"));
             }
-
-            Guid assetGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/Asset/{bankAssetPath}");
-            XDocument assetDocument = XmlBuilder.CreateDocument(
-                XmlBuilder.Object("EncodableAsset", assetGuid,
-                    XmlBuilder.Property("assetPath", bankAssetPath),
-                    XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
-                )
-            );
-            assetDocument.Save(Path.Combine(_assetMetadataDirectory, $"{assetGuid.AsFmodStringFormat()}.xml"));
         }
     }
 }

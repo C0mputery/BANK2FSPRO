@@ -7,7 +7,7 @@ internal static class XmlBuilder {
         return new XDocument(
             new XDeclaration("1.0", "UTF-8", null),
             new XElement("objects",
-                new XAttribute("serializationModel", "Studio.02.02.00"),
+                new XAttribute("serializationModel", "Studio.01.10.00"),
                 content
             )
         );
