@@ -29,6 +29,7 @@ public partial class Decompiler {
     public void Decompile() {
         SetupGuids();
         SetupPaths();
+        
         CollectNodes();
 
         SetupProjectFiles();
