@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using Fmod5Sharp.FmodTypes;
+﻿using Fmod5Sharp.FmodTypes;
 using FModBankParser;
 using FModBankParser.Nodes;
 using FModBankParser.Nodes.Buses;
@@ -46,27 +45,18 @@ public partial class Decompiler {
         Directory.CreateDirectory(_outputDirectory);
         
         string bankFolderDirectory = Path.Combine(_outputDirectory, "Metadata", "BankFolder");
-        Directory.CreateDirectory(bankFolderDirectory);
         
-        XDocument projectFile = new XDocument(
-            new XDeclaration("1.0", "UTF-8", null),
-            new XElement("objects", 
-                new XAttribute("serializationModel", "Studio.02.02.00")
-            )
+        XmlBuilder.Save(
+            XmlBuilder.CreateDocument(),
+            Path.Combine(_outputDirectory, $"{_projectName}.fspro")
         );
-        projectFile.Save(Path.Combine(_outputDirectory, $"{_projectName}.fspro"));
         
-        XDocument masterBankFolderMetadata = new XDocument(
-            new XDeclaration("1.0", "utf-8", null),
-            new XElement("objects",
-                new XAttribute("serializationModel", "Studio.02.02.00"),
-                new XElement("object",
-                    new XAttribute("class", "MasterBankFolder"),
-                    new XAttribute("id", MasterBankFolderGuid.ToFmodFormat())
-                )
-            )
+        XmlBuilder.Save(
+            XmlBuilder.CreateDocument(
+                XmlBuilder.Object("MasterBankFolder", MasterBankFolderGuid)
+            ),
+            Path.Combine(bankFolderDirectory, $"{MasterBankFolderGuid.ToFmodFormat()}.xml")
         );
-        masterBankFolderMetadata.Save(Path.Combine(bankFolderDirectory, $"{MasterBankFolderGuid.ToFmodFormat()}.xml"));
     }
     
     private void CollectNodes() {
@@ -104,7 +94,6 @@ public partial class Decompiler {
     
     private void ExtractSoundFiles() {
         string metadataFileDirectory = Path.Combine(_outputDirectory, "Metadata", "AudioFile");
-        Directory.CreateDirectory(metadataFileDirectory);
 
         foreach (FModReader bank in _banks) {
             if (bank.SoundBankData.Count == 0) { continue; }
@@ -127,39 +116,18 @@ public partial class Decompiler {
                     if (!_collectedBank.SoundNameToGuid.TryGetValue(name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
 
                     string assetPath = filePath.Replace("\\", "/");
-                    XDocument soundFileMetadata = new XDocument(
-                        new XDeclaration("1.0", "utf-8", null),
-                        new XElement("objects",
-                            new XAttribute("serializationModel", "Studio.02.02.00"),
-                            new XElement("object",
-                                new XAttribute("class", "AudioFile"),
-                                new XAttribute("id", soundGuid.ToFmodFormat()),
-                    
-                                new XElement("property",
-                                    new XAttribute("name", "assetPath"),
-                                    new XElement("value", assetPath)
-                                ),
-                                new XElement("property",
-                                    new XAttribute("name", "frequencyInKHz"),
-                                    new XElement("value", samples.Metadata.Frequency / 1000)
-                                ),
-                                new XElement("property",
-                                    new XAttribute("name", "channelCount"),
-                                    new XElement("value", samples.Metadata.Channels)
-                                ),
-                                new XElement("property",
-                                    new XAttribute("name", "length"),
-                                    new XElement("value", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency)
-                                ),
-                                new XElement("relationship",
-                                    new XAttribute("name", "masterAssetFolder"),
-                                    new XElement("destination", MasterBankFolderGuid.ToFmodFormat())
-                                )
+                    XmlBuilder.Save(
+                        XmlBuilder.CreateDocument(
+                            XmlBuilder.Object("AudioFile", soundGuid,
+                                XmlBuilder.Property("assetPath", assetPath),
+                                XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
+                                XmlBuilder.Property("channelCount", samples.Metadata.Channels),
+                                XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
+                                XmlBuilder.Relationship("masterAssetFolder", MasterBankFolderGuid)
                             )
-                        )
+                        ),
+                        Path.Combine(metadataFileDirectory, $"{soundGuid.ToFmodFormat()}.xml")
                     );
-                    
-                    soundFileMetadata.Save(Path.Combine(metadataFileDirectory, $"{soundGuid.ToFmodFormat()}.xml"));
                 }
             }
         }
