@@ -65,9 +65,12 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
     private void ExtractSoundFiles() {
         foreach (FModReader bank in banks) {
+            
             if (bank.SoundBankData.Count == 0) { continue; }
 
             string soundFileDirectory = Path.Combine(_assetsDirectory, bank.BankName);
+            Directory.CreateDirectory(soundFileDirectory);
+
             Directory.CreateDirectory(soundFileDirectory);
 
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {

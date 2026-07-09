@@ -51,9 +51,5 @@ public partial class Decompiler {
         Directory.CreateDirectory(_profilerFolderMetadataDirectory);
         Directory.CreateDirectory(_sandboxFolderMetadataDirectory);
         Directory.CreateDirectory(_snapshotGroupMetadataDirectory);
-
-        foreach (FModReader bank in banks) {
-            Directory.CreateDirectory(Path.Combine(_assetsDirectory, bank.BankName));
-        }
     }
 }
