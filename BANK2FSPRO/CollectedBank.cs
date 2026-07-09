@@ -133,7 +133,7 @@ public class CollectedBank {
 
             switch (node) {
                 case BuiltInEffectNode builtIn:
-                    features.Add($"Effect.BuiltIn.DSPType={builtIn.DSPType}");
+                    features.Add($"Effect.BuiltIn.DSPType={(EDSPTypeLegacy)builtIn.DSPType}"); // This is old, we need to use this info
                     if (builtIn.InputChannelLayout != 0) { features.Add("Effect.BuiltIn.InputChannelLayout"); }
                     CollectParameterizedEffectFeatures(features, builtIn.ParamEffectBody);
                     break;
