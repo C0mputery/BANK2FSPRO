@@ -1,155 +1,157 @@
-# FMOD Studio Test Project Guide
+# FMOD Studio 1.10 Test Project Guide
 
-Build one small “kitchen sink” FMOD Studio project that covers every category `CollectedBank.Debug()` can emit, then open `Metadata/` to see the XML shapes.
+Build one small “kitchen sink” project in **FMOD Studio 1.10** that covers every category `CollectedBank.Debug()` can emit, then open `Metadata/` to see the XML shapes.
 
-Verified against the [FMOD Studio 2.03 User Manual](https://www.fmod.com/docs/2.03/studio/) (Mixing, Authoring Events, Instrument Reference, Effect Reference, Modulator Reference, Managing Assets, Event Macros).
+This matches your bank parser’s **legacy DSP layout** (`EDSPTypeLegacy` / bank file version around `0x65`). Do **not** author the reference project in Studio 2.x — effect menus, XML `serializationModel`, and some modulators differ.
 
 ## Workflow
 
-1. Create a new FMOD Studio project (match your target Studio version if you can; BANK2FSPRO stubs use `serializationModel="Studio.02.02.00"`).
+1. Create a **new project in FMOD Studio 1.10** (not 2.00+).
 2. Import a few short WAVs (mono + stereo) via the **Assets** browser.
 3. Build features in the order below (mixer → parameters → events → snapshots → banks).
-4. Save, then inspect XML under:
-   - `Metadata/Event/`
-   - `Metadata/AudioFile/`
-   - `Metadata/Bank/`
-   - `Metadata/Mixer.xml` / `Master.xml`
-   - `Metadata/SnapshotGroup/`
-   - `Metadata/ParameterPreset/` (if you use presets)
-5. **File → Build…** → run BANK2FSPRO → compare the feature dump to this checklist. Missing lines = missing Studio setup (or a bank-version quirk).
+4. Save, then inspect XML under `Metadata/` (Event, AudioFile, Bank, Mixer, SnapshotGroup, etc.).
+5. Note the real `serializationModel` on the root `<objects>` element — use that as ground truth for BANK2FSPRO (the stub currently hardcodes `Studio.02.02.00`, which is a 2.x string).
+6. **File → Build…** → run BANK2FSPRO → compare the feature dump to this checklist.
 
-Use **one event per major feature family** so XML stays readable. Name them like `evt_timeline`, `evt_multi`, `evt_scatterer`, etc.
+Use **one event per major feature family** so XML stays readable (`evt_timeline`, `evt_multi`, `evt_scatterer`, …).
 
 ---
 
 ## 1. Mixer / buses (`Bus.*`)
 
-Open **Window → Mixer**. Work in the **routing browser** (left) and the **deck** (bottom) when a bus is selected.
+Open **Window → Mixer**. Use the **routing browser** and the **deck**.
 
 | Studio action | Features you hit |
 |---|---|
 | Keep the default **Master Bus** | `Bus.MasterBusNode`, `Bus.BusBody`, `Bus.Routable` |
-| Routing browser empty space → **New Group** (e.g. SFX, Music) | `Bus.GroupBusNode` |
-| Use the default **Reverb** return, or create another return from the routing browser | `Bus.ReturnBusNode` |
-| Drag events/groups onto parent buses to route; set volume/pitch ≠ default | `Bus.MixerStrip.Volume`, `Bus.MixerStrip.Pitch` |
-| **VCAs** tab → empty space → **New VCA**; then bus → **Assign To VCA → …** (or drag onto the VCA) | `Bus.MixerStrip.VCAs`, `VCA`, `VCA.Strips` |
-| Select a bus → deck empty space → **Add Effect** / **Insert Effect** both **left of** and **right of** the fader | `Bus.PreFaderEffects`, `Bus.PostFaderEffects` |
-| Enable **MCR** on the mixing desk (or use bus macros) and set **max instances** / **stealing** | `Bus.MaximumPolyphony`, `Bus.PolyphonyLimitBehavior=…` |
-| Routing browser → **New Port**; select it → deck **port macros → type** (Controller Speaker, Vibration, etc.) | `Bus.OutputPortNode`, `Bus.PortType=…` |
-| Change speaker format / channel-format-changing effects (Channel Mix, Spatializer, Object Spatializer, Convolution Reverb) | `Bus.InputChannelLayout`, `Bus.Pre/PostFaderInputChannelLayouts`, `Bus.ObjectPannerIndex` |
+| Routing browser → **New Group** (e.g. SFX, Music) | `Bus.GroupBusNode` |
+| Use the default **Reverb** return, or add another return | `Bus.ReturnBusNode` |
+| Route events/groups; set volume/pitch ≠ default | `Bus.MixerStrip.Volume`, `Bus.MixerStrip.Pitch` |
+| **VCAs** → **New VCA**; assign buses (**Assign To VCA** / drag) | `Bus.MixerStrip.VCAs`, `VCA`, `VCA.Strips` |
+| On a bus deck: effects **left of** and **right of** the fader | `Bus.PreFaderEffects`, `Bus.PostFaderEffects` |
+| Bus / event **max instances** + **stealing** | `Bus.MaximumPolyphony`, `Bus.PolyphonyLimitBehavior=…` |
+| Channel-format effects (Channel Mix, Spatializer, Object Pan / Object Spatializer, Convolution Reverb) | `Bus.InputChannelLayout`, related layout / object-pan fields |
 
-Also tweak the VCA’s volume (and pitch if shown) → `VCA.MixerStrip.*`.
+**Sends:** deck → **Add Send** / **Insert Send** → target a return → set send volume. Left of fader = pre-fader; right = post-fader.
 
-**Sends:** on a bus or event track deck → **Add Send** / **Insert Send**, target a return, set send **Volume**. Place the send left of the fader for pre-fader, right for post-fader.
+> **Ports:** if your 1.10 build has **New Port** in the routing browser, add one and set its type for `Bus.OutputPortNode` / `Bus.PortType=…`. If the menu is missing, skip — that feature may be later than your build.
 
 ---
 
-## 2. Effects (`Effect.*`)
+## 2. Effects (`Effect.*`) — critical for 1.10 decompile
 
-Put effects on Master/group/return buses **and** on event master/audio tracks.
+Put effects on buses **and** event tracks. Deck empty space → **Add Effect** / **Insert Effect**.
 
-Deck empty space → **Add Effect** / **Insert Effect** / **Add Send** / **Add Sidechain** (and spectral sidechain where available).
+### Add every built-in you can place — no substitutions
 
-### Built-in effects (Studio 2.03 names)
+The bank stores a concrete `DSPType` on `BuiltInEffectNode`. In 1.10 that uses the **legacy** enum (`EDSPTypeLegacy`). Multiband EQ is **not** a stand-in for Lowpass: different type IDs, different XML.
 
-Add **every effect the current Studio menu still exposes**. Do **not** substitute one effect for another “because it sounds similar.”
+In 1.10, Lowpass / Highpass / Echo / etc. are still in the UI (API docs may mark some “deprecated,” but they still author and still build into banks). **Add them all** so your decompiler sees real XML for each `Effect.BuiltIn.DSPType=…`.
 
-The bank stores a concrete `DSPType` on `BuiltInEffectNode`. Your decompiler must map that enum value to the matching Studio XML class/properties. Multiband EQ is `FMOD_DSP_TYPE_MULTIBAND_EQ`; Lowpass is a different type (`FMOD_DSP_TYPE_LOWPASS` / `_SIMPLE`). Building only Multiband EQ teaches you Multiband EQ XML — it does **not** give you Lowpass/Highpass XML, and it will not round-trip a bank that contains those DSP types.
-
-| Studio effect | Typical bank DSP |
+| Add this in Studio 1.10 | Legacy `EDSPTypeLegacy` |
 |---|---|
-| **3-EQ** | `THREE_EQ` |
-| **Multiband EQ** | `MULTIBAND_EQ` |
-| **Parametric EQ** | `PARAMEQ` (if still offered) |
-| **Channel Mix** | `CHANNELMIX` |
-| **Chorus** / **Flanger** / **Distortion** / **Delay** | `CHORUS` / `FLANGE` / `DISTORTION` / `DELAY` |
-| **Reverb** / **Convolution Reverb** | `SFXREVERB` / `CONVOLUTIONREVERB` |
-| **Compressor** / **Limiter** / **Gain** | `COMPRESSOR` / `LIMITER` / (gain module) |
-| **Panner** / **Spatializer** / **Object Spatializer** | `PAN` / spatializer / `OBJECTPAN` |
-| **Transceiver** | `TRANSCEIVER` |
-| **Send** | `SEND` (also `SendEffectNode`) |
-| **Sidechain** / **Spectral Sidechain** | sidechain effect nodes |
-| **Multiband Dynamics** (if present) | `MULTIBAND_DYNAMICS` |
+| **Lowpass** | `FMOD_DSP_TYPE_LOWPASS` |
+| **Lowpass Simple** | `FMOD_DSP_TYPE_LOWPASS_SIMPLE` |
+| **Highpass** | `FMOD_DSP_TYPE_HIGHPASS` |
+| **Highpass Simple** | `FMOD_DSP_TYPE_HIGHPASS_SIMPLE` |
+| **Parametric EQ** / **EQ** | `FMOD_DSP_TYPE_PARAMEQ` |
+| **3-EQ** | `FMOD_DSP_TYPE_THREE_EQ` |
+| **Multiband EQ** | `FMOD_DSP_TYPE_MULTIBAND_EQ` |
+| **Echo** | `FMOD_DSP_TYPE_ECHO` |
+| **Delay** | `FMOD_DSP_TYPE_DELAY` |
+| **Flange** / **Flanger** | `FMOD_DSP_TYPE_FLANGE` |
+| **Distortion** | `FMOD_DSP_TYPE_DISTORTION` |
+| **Normalize** | `FMOD_DSP_TYPE_NORMALIZE` |
+| **Limiter** | `FMOD_DSP_TYPE_LIMITER` |
+| **Pitch Shifter** / **Pitch Shift** | `FMOD_DSP_TYPE_PITCHSHIFT` |
+| **Chorus** | `FMOD_DSP_TYPE_CHORUS` |
+| **Tremolo** | `FMOD_DSP_TYPE_TREMOLO` |
+| **Compressor** | `FMOD_DSP_TYPE_COMPRESSOR` |
+| **SFX Reverb** / **Reverb** | `FMOD_DSP_TYPE_SFXREVERB` |
+| **Convolution Reverb** | `FMOD_DSP_TYPE_CONVOLUTIONREVERB` |
+| **Channel Mix** | `FMOD_DSP_TYPE_CHANNELMIX` |
+| **Panner** / pan | `FMOD_DSP_TYPE_PAN` |
+| **Spatializer** | (spatializer; related to pan/3D path) |
+| **Object Pan** / **Object Spatializer** | `FMOD_DSP_TYPE_OBJECTPAN` |
+| **Transceiver** | `FMOD_DSP_TYPE_TRANSCEIVER` |
+| **FFT** / spectrum analyzer (if listed) | `FMOD_DSP_TYPE_FFT` |
+| **Loudness Meter** (if listed) | `FMOD_DSP_TYPE_LOUDNESS_METER` |
+| **Envelope Follower** (if listed) | `FMOD_DSP_TYPE_ENVELOPEFOLLOWER` |
+| **Send** | `FMOD_DSP_TYPE_SEND` (+ `SendEffectNode`) |
 
-That covers `Effect.BuiltInEffectNode`, `Effect.EffectBody`, `Effect.Parameterized`, wet/dry/input gain, flags, and parameter buffers for **modern** Studio-authored banks.
+Exact menu labels can vary slightly by 1.10.x patch; match by DSP behavior, then confirm with the feature dump’s `Effect.BuiltIn.DSPType=…`.
 
-#### Effects missing from the modern UI
-
-Types like **Lowpass**, **Highpass**, **Echo**, **Tremolo**, **Pitch Shift**, **Normalize**, **FFT**, **Loudness Meter**, **Envelope Follower** may still appear in dumps from older banks (`Effect.BuiltIn.DSPType=…`), but current Studio may no longer let you place them.
-
-For decompile that means:
-
-1. This kitchen-sink project is the ground truth for **effects Studio can still author** → XML you can copy.
-2. For **legacy-only DSP types**, you need either an old Studio project/bank that still contains them, or an explicit decompiler mapping (e.g. Lowpass → Multiband EQ low-shelf/LPF band, or a synthetic XML shape). That mapping is a decompiler decision — do not pretend the test project “covers” those types by adding Multiband EQ.
+Also hit non-default wet/dry/input gain where the effect exposes them → `Effect.EffectBody`, `Effect.WetMix`, `WetLevel`, `DryLevel`, `InputGain`, `Effect.Parameterized`, parameter buffers.
 
 ### Special effect nodes
 
 | Studio action | Features |
 |---|---|
-| **Add Send** → target return; set send Volume | `Effect.SendEffectNode`, `Effect.Send`, `ReturnGuid`, `SendLevel` |
-| **Add Sidechain** on a source track/bus; on a compressor set **Sidechain** dropdown, or add **Add Modulation → Sidechain** on a property | `Effect.SideChainEffectNode`, Targets/Level; `Effect.Parameterized.SideChainEnabled` |
-| **Add Spectral Sidechain** + **Add Modulation → Spectral Sidechain** on a property (Mode: **RMS** or **Spectral Centroid**) | `Effect.SpectralSideChainEffectNode`; `Modulator.SpectralSidechain` |
-| Deck → **Add Effect → Plug-in effects → …** (any VST/third-party) | `Effect.PluginEffectNode`, `PluginName=…`, optional `Name=…` |
+| **Add Send** → return; set level | `Effect.SendEffectNode`, `ReturnGuid`, `SendLevel` |
+| **Add Sidechain** + compressor sidechain input and/or **Add Modulation → Sidechain** on a property | `Effect.SideChainEffectNode`, Targets/Level; `Effect.Parameterized.SideChainEnabled` |
+| **Add Effect → Plug-in…** (VST / etc.) | `Effect.PluginEffectNode`, `PluginName=…` |
+
+### Not available in 1.10 (skip)
+
+These are **2.03+** and will not appear in a 1.10 kitchen-sink project:
+
+- Spectral Sidechain effect / modulator
+- Multiband Dynamics
+- Seek **modulator** on arbitrary properties (in 1.10, seek speed lives on **parameters**, not as a general modulator)
+
+If your game banks were also built with 1.10, you should not need those for round-trip. If a dump ever shows them, that bank is newer than 1.10.
 
 ---
 
 ## 3. Parameters (`Parameter.*`, layouts, automation)
 
-In the event editor / parameters browser, create:
-
-| Parameter | Features |
+| Parameter setup | Features |
 |---|---|
-| Continuous game parameter with min/max/default + name | `Parameter`, `Type=GameControlled`, `Name`, `Range`, `DefaultValue` |
-| Labeled / discrete parameter | `Parameter.Labels` |
-| Velocity on the parameter; **Add Modulation → Seek** on the parameter value (asymmetric ascending/descending if you want both seek speeds) | `Parameter.Velocity`, `SeekSpeed`, `SeekSpeedDown` |
-| Built-in parameters: Distance, Distance (Normalized), Direction, Elevation, Event Cone Angle, Event Orientation, Listener Orientation, Speed, Speed (Absolute), etc. | `Parameter.Type=Automatic*` |
+| Continuous game param: name, min/max, default | `Parameter`, `Type=GameControlled`, `Name`, `Range`, `DefaultValue` |
+| Labeled / discrete param | `Parameter.Labels` |
+| Parameter **velocity** | `Parameter.Velocity` |
+| Parameter **seek speed** (and down, if separate in your build) | `Parameter.SeekSpeed`, `SeekSpeedDown` |
+| Built-in automatics: Distance, Direction, Elevation, Cone Angle, Orientation, Speed, … | `Parameter.Type=Automatic*` |
 
 Then:
 
-1. Add parameters to an event → `Event.ParameterIds`, `Event.ParameterLayouts`, `ParameterLayout.*`
-2. Open a **parameter sheet** (not only the timeline) and place instruments → `ParameterLayout.Instruments`, `TriggerBoxes`
-3. Right-click a property → **Add Automation**; draw curves → `Curve`, `Curve.Owner`, `Curve.Points`, `Curve.Point.Type=…`, `Shape`
-4. That also pulls `Property.*`, `Mapping` / `Mapping.Points`, `Controller.*`
-
-Also try an **action sheet** (concurrent or consecutive) for fire-and-forget playlists of instruments.
+1. Add params to an event → `Event.ParameterIds`, `Event.ParameterLayouts`, `ParameterLayout.*`
+2. Place instruments on a **parameter sheet** → `ParameterLayout.Instruments`, `TriggerBoxes`
+3. Right-click property → **Add Automation** → `Curve`, `Mapping`, `Controller`, `Property.*`
+4. Optional: **action sheet** (concurrent / consecutive) for playlist-style triggering
 
 ---
 
 ## 4. Modulators (`Modulator.*`)
 
-Right-click a property in the deck → **Add Modulation → …**
+Right-click a property → **Add Modulation** (1.10 set):
 
-| Studio menu | Features |
+| Modulator | Features |
 |---|---|
-| **AHDSR** | `Modulator.ADSR` (bank name is ADSR; UI is AHDSR) |
+| **AHDSR** | `Modulator.ADSR` |
 | **Random** | `Modulator.Random` |
-| **Sidechain** (needs a **Sidechain** effect elsewhere) | `Modulator.Envelope` / sidechain envelope-follower style |
-| **LFO** (try Shape: Sine, Square, Triangle, Saw Up/Down, Noise) | `Modulator.LFO`, `Shape=…` |
-| **Seek** | `Modulator.Seek` |
-| **Spectral Sidechain** (needs a **Spectral Sidechain** effect; Mode RMS / Spectral Centroid) | `Modulator.SpectralSidechain`, ThresholdMapping |
-| **Autopitch** (only on instruments on a parameter sheet) | Related instrument autopitch body fields |
+| **Sidechain** (needs a Sidechain effect) | `Modulator.Envelope` / sidechain path |
+| **LFO** (try several shapes) | `Modulator.LFO`, `Shape=…` |
+| **Autopitch** (instrument on a parameter sheet) | instrument autopitch body fields |
 
-Also note `PropertyType`, `ClockSource` (Instance / Global), `Owner`, `PropertyIndex`.
+Skip Spectral Sidechain / Seek modulators (2.03+).
 
 ---
 
-## 5. Events — shared event properties (`Event.*`)
+## 5. Events — macros (`Event.*`)
 
-Select the event’s **master track** / macros drawer (deck) and set non-defaults:
+On the event macros / master deck, set non-defaults:
 
-| Studio control (Event Macros) | Feature |
+| Control | Feature |
 |---|---|
-| Timeline sheet present | `Event.Timeline` |
-| Add extra **audio tracks** beyond master | `Event.NonMasterTracks` |
-| Route the event in the mixer routing browser; master track exists by default | `Event.MasterTrack`, `Event.InputBus` |
+| Timeline sheet | `Event.Timeline` |
+| Extra audio tracks | `Event.NonMasterTracks` |
+| Routing + master track | `Event.MasterTrack`, `Event.InputBus` |
 | **Max Instances**, **Priority**, **Stealing** | `MaximumPolyphony`, `Priority`, `PolyphonyLimitBehavior` |
 | **Cooldown** | `TriggerCooldown` |
-| **Doppler** on + **Doppler Scale** ≠ default | `DopplerScale` |
-| **Min and Max Distance** (needs Spatializer / Object Spatializer / Distance Normalized, etc.) | `DistanceAttenuation` |
-| User properties (float + string) on the event | `UserPropertyFloat`, `UserPropertyString` |
-| Instruments with event-state / start-stop style trigger conditions | `EventTriggeredInstruments` |
-
-> `Event.SchedulingMode=…` is a bank field; there may be no single identically named control in the macros drawer. Cover related behavior with streaming assets, async instruments, and timeline logic, then check what the dump reports.
+| **Doppler** + scale | `DopplerScale` |
+| **Min / Max Distance** (with Spatializer) | `DistanceAttenuation` |
+| User properties (float + string) | `UserPropertyFloat`, `UserPropertyString` |
 
 ---
 
@@ -157,95 +159,58 @@ Select the event’s **master track** / macros drawer (deck) and set non-default
 
 Event: `evt_timeline`
 
-On the **timeline** sheet, right-click a **logic track**:
+On the timeline **logic track** (right-click):
 
-1. Place instruments on audio tracks → `Timeline`, `TriggerBoxes`
-2. Add a **tempo marker** → `Timeline.TempoMarkers`
-3. Add a **destination marker** (and optionally a destination/loop region) → destination / named-marker style data
-4. Add a **sustain point**; give it parameter/event conditions in the deck → `SustainPoints` + `Evaluators`
-5. Add a **transition region** (or transition marker) aimed at a destination marker/loop region:
-   - destination + region length → `Transition.Destination`, `StartEnd`
-   - deck **probability** toggle + chance ≠ 100% → `ChancePercent`
-   - deck **quantization** (bars / notes; needs a tempo marker) → `Quantization`, `Unit=…`
-   - **parameter conditions** via the logic/condition UI → evaluators
-6. Right-click the transition → **Add Transition Timeline**; double-click to open it; add lead content / fades / curves → `TransitionTimeline`, `Length`, `LeadIn`/`LeadOut`, `LeadInCurves`, `LeadOutCurves`, `CurveMapping`, `FadeOverrides`, time-locked / triggered boxes
+1. Instruments on tracks → `Timeline`, `TriggerBoxes`
+2. **Tempo marker** → `TempoMarkers`
+3. **Destination marker** (+ loop region if useful)
+4. **Sustain point** + conditions → `SustainPoints`, `Evaluators`
+5. **Transition region** → destination, probability ≠ 100%, quantization (needs tempo), parameter conditions → `Transition.*`
+6. Right-click transition → **Add Transition Timeline**; add lead-in/out / fades / curves → `TransitionTimeline`, `LeadIn`/`LeadOut`, curves, fade overrides
 
 ---
 
-## 7. Instruments (one event each)
+## 7. Instruments
 
-Right-click an audio track / playlist / action sheet and use the exact menu names below.
+Right-click track / playlist / action sheet:
 
-### Single (waveform) — `evt_waveform`
+| Menu | Event | Features |
+|---|---|---|
+| **Add Single Instrument** (or drag WAV) | `evt_waveform` | Waveform + body knobs; set asset loading mode in Assets browser |
+| **Add Multi Instrument** | `evt_multi` | Playlist modes (Shuffle / Randomize / Sequential variants), Loop Playlist |
+| **Add Scatterer Instrument** | `evt_scatterer` | Spawn interval / rate / total / stealing + playlist |
+| Drag event / **Add Event Instrument** | `evt_eventref` | Nested event |
+| Drag snapshot / **Add Snapshot Instrument** | (any) | `Event.SnapshotReference`, intensity |
+| **Add Silence Instrument** (playlist / consecutive action sheet) | `evt_silence` | Duration |
+| **Add Programmer Instrument** | `evt_programmer` | Name/key |
+| **Add Plug-in Instrument** | `evt_plugininst` | Bank `EffectInstrument` / plug-in instrument path |
+| **Add Command Instrument** | `evt_command` | Command Type / Target / Value |
 
-- **Add Single Instrument**, or drag a WAV onto a track
-- In the **Assets** browser, set loading mode per asset: **Compressed**, **Decompressed**, or **Stream** (Stream button / advanced loading mode) → `Instrument.WaveformInstrumentNode`, `LoadingMode=…`, `WaveformResource`, `AudioFile`
-- Non-default volume/pitch, loop / play count, trigger chance, trigger delay, quantization, start offset, 3D offset, routing, polyphony-style limits → `Instrument.InstrumentBody` + matching body flags
-
-### Multi — `evt_multi`
-
-- **Add Multi Instrument** with ≥2 playlist entries (drag assets or **Add Single Instrument** into the playlist)
-- **Playlist Selection Mode**: Shuffle, Randomize, Sequential - play scope, Sequential - global scope, Sequential - instance scope → `Playlist.PlayMode=…`
-- **Loop Playlist** toggle → related play-mode / selection behavior (`SelectionMode=…` in the dump)
-
-### Scatterer — `evt_scatterer`
-
-- **Add Scatterer Instrument**
-- Set **Min & Max Spawn Interval**, **Spawn Rate**, **Spawn Total**, **Spawn Stealing**, playlist selection mode, optional spawn quantization → all `Instrument.Scatterer.*`
-
-### Event reference — `evt_eventref`
-
-- Drag another event onto a track, or **Add Event Instrument**
-- For snapshots: drag a snapshot onto a track, or **Add Snapshot Instrument**; set **intensity** → `EventReference`, `SnapshotIntensity`, `ParameterStubs`
-
-### Silence — `evt_silence`
-
-- On a multi/scatterer playlist or consecutive action sheet: **Add Silence Instrument**; set **Duration** → `Silence`, `Duration`
-
-### Programmer — `evt_programmer`
-
-- **Add Programmer Instrument**; set the key/name → `Programmer`, `Name`
-
-### Plug-in instrument — `evt_plugininst`
-
-- **Add Plug-in Instrument → …** (bundled trials or your own generator DSP)
-- This is the Studio UI for bank `EffectInstrumentNode` / `Instrument.Effect` (not a mixer plug-in *effect*)
-
-### Command — `evt_command`
-
-- **Add Command Instrument**
-- Set **Command Type**, **Target**, **Value** / **Delta Value** → `Command.Type=…`, `Target`, `Value`
+Asset loading modes in 1.10 Assets browser: **Compressed**, **Decompressed**, **Stream** (labels may say “advanced loading mode”) → `WaveformResource.LoadingMode=…`.
 
 ---
 
-## 8. Snapshots (`Snapshot.*`, `Event.SnapshotReference`)
+## 8. Snapshots (`Snapshot.*`)
 
-In the Mixer **snapshots browser**:
+Snapshots browser:
 
-1. Empty space → **New Overriding Snapshot** and **New Blending Snapshot**
-2. Empty space → **New Group**; put snapshots in the group (equal priority / averaged)
-3. Scope in bus/effect properties; reorder snapshots in the browser to change **priority**
-4. Adjust snapshot **intensity**; optionally **Add Modulation → AHDSR** on intensity
-5. Trigger via **Add Snapshot Instrument** / drag snapshot onto an event track → `Event.SnapshotReference`
+1. **New Overriding Snapshot** and **New Blending Snapshot**
+2. **New Group**; put snapshots in a group
+3. Scope in properties; reorder for priority
+4. Set intensity; optional AHDSR on intensity
+5. Trigger with a snapshot instrument on an event
 
-| Studio concept | Feature |
-|---|---|
-| Overriding vs blending snapshot type | `Snapshot.Blending` |
-| Browser order / groups | `Priority`, `GroupResolutionMethod=…` |
-| Scoped property values | `Snapshot.Entries` |
-| Intensity | `Snapshot.Intensity` |
-
-> Bank `GroupResolutionMethod` values (Least / Greatest / Additive / Average / Multiply / Override) may not all map 1:1 to a single Studio dropdown; covering overriding + blending + grouped snapshots is the practical UI coverage.
+→ `Snapshot`, `Entries`, `Blending`, `Priority`, `Intensity`, `GroupResolutionMethod=…`
 
 ---
 
-## 9. Audio files / banks (`AudioFile.*`, waveform loading)
+## 9. Banks / audio files
 
-- Multiple WAVs with different **Assets** browser loading modes (**Compressed** / **Decompressed** / **Stream**) → `WaveformResource.LoadingMode=…`
-- **Banks** browser → **New Bank**; right-click events → **Assign to Bank…** (or drag onto a bank)
-- Keep at least one **Master Bank** (**Mark as Master Bank**); put most events on a non-master bank
-- Keep sample/asset names unique (the collector currently assumes unique sound names)
-- **File → Build…** (and ensure Master + `.strings` banks are produced)
+- Multiple assets with different loading modes
+- **Banks** browser → **New Bank**; **Assign to Bank…**
+- Keep a **Master Bank**; put most events on a non-master bank
+- Unique sample names
+- **File → Build…**
 
 ---
 
@@ -253,48 +218,35 @@ In the Mixer **snapshots browser**:
 
 | Event | Purpose |
 |---|---|
-| `evt_waveform` | Single instrument + asset loading modes + instrument body knobs |
-| `evt_multi` | Playlist selection modes + Loop Playlist |
-| `evt_scatterer` | Spawn interval/rate/total/stealing + quantization |
-| `evt_timeline` | Tempo/destination/sustain + transition region + transition timeline |
-| `evt_param` | Parameter sheets, automation curves, modulators |
-| `evt_nested` | Event instrument + programmer + silence + command + plug-in instrument |
-| `evt_3d` | Spatializer + min/max distance + Doppler + built-in distance/direction params |
-| `snap_*` via snapshot instruments | Overriding + blending snapshots |
+| `evt_waveform` | Single + loading modes + instrument body |
+| `evt_multi` | Playlist modes |
+| `evt_scatterer` | Scatterer spawn controls |
+| `evt_timeline` | Markers, sustain, transitions, transition timeline |
+| `evt_param` | Parameter sheets, automation, modulators |
+| `evt_nested` | Event / programmer / silence / command / plug-in instrument |
+| `evt_3d` | Spatializer, distance, Doppler, built-in params |
+| `evt_effects` | One track/bus chain that hosts **every** built-in DSP from the table above |
 
-Plus mixer: Master, 2 groups, Reverb (and maybe a second return), 1 VCA, 1 port, sends, built-in effects, one plug-in effect if available.
+Plus mixer: Master, 2 groups, Reverb (+ optional 2nd return), 1 VCA, sends, one VST if available.
 
 ---
 
-## How to read the XML after save
+## How this ties to decompile
 
-Studio writes one (or a few) objects per file. Patterns you’ll see:
-
-- `object class="Event"` with `relationship` to timeline, tracks, parameters
-- `SingleSound` / `MultiSound` / `ScattererSound` / `EventSound` / `SilenceSound` / `ProgrammerSound` / `CommandInstrument` / plug-in instrument classes
-- `MixerBus` / `MixerReturn` / `MixerGroup` / `MixerVCA` / port bus objects
-- `Snapshot` / `SnapshotGroup`
-- `GameParameter` / automatable objects / automation curves / modulator classes
-
-BANK2FSPRO’s `XmlBuilder` already mirrors that shape (`property` / `relationship` / `destination`). Use this kitchen-sink project as ground truth for property names and nesting.
+1. Studio 1.10 writes XML for each effect you actually placed.
+2. Building banks produces `BuiltInEffectNode.DSPType` values in the **legacy** numbering your `EDSPTypeLegacy` / `DSPTypeResolver` already treat as 1.10-era.
+3. Your decompiler should map each legacy DSP type → the XML class/properties you copied from this project’s `Metadata/`.
+4. Do **not** map Lowpass → Multiband EQ in the decompiler unless you intentionally want a lossy upgrade; with a 1.10 reference project you can keep a 1:1 mapping.
 
 ---
 
 ## Validation loop
 
-1. **File → Build…** from the test project.
-2. Run BANK2FSPRO and capture the feature dump.
-3. Diff against this checklist.
-4. For each missing `Feature.X`, change that one Studio control and rebuild — don’t change everything at once.
+1. Build banks from the 1.10 test project.
+2. Run BANK2FSPRO; capture the feature dump.
+3. Confirm you see many distinct `Effect.BuiltIn.DSPType=…` lines (Lowpass, Highpass, Echo, …), not only Multiband EQ.
+4. For each missing feature, change that one Studio control and rebuild.
 
-## Doc references
+## Notes vs Studio 2.x docs
 
-- [Mixing](https://www.fmod.com/docs/2.03/studio/mixing.html)
-- [Authoring Events](https://www.fmod.com/docs/2.03/studio/authoring-events.html)
-- [Working with Instruments](https://www.fmod.com/docs/2.03/studio/working-with-instruments.html)
-- [Instrument Reference](https://www.fmod.com/docs/2.03/studio/instrument-reference.html)
-- [Effect Reference](https://www.fmod.com/docs/2.03/studio/effect-reference.html)
-- [Modulator Reference](https://www.fmod.com/docs/2.03/studio/modulator-reference.html)
-- [Event Macros Drawer Reference](https://www.fmod.com/docs/2.03/studio/event-macro-controls-reference.html)
-- [Managing Assets](https://www.fmod.com/docs/2.03/studio/managing-assets.html)
-- [Getting Events into Your Game](https://www.fmod.com/docs/2.03/studio/getting-events-into-your-game.html)
+Earlier drafts of this guide used Studio **2.03** manual wording. For your plan, treat **1.10 UI + this project’s Metadata XML** as source of truth. 2.x docs are still useful for concepts (sends, transition timelines, AHDSR) but not for which effects exist or for `serializationModel`.
