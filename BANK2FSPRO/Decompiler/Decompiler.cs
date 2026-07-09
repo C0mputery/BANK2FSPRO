@@ -21,6 +21,7 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
         SetupDirectories();
 
         CollectNodes();
+        _collectedBank.Debug();
 
         SetupProjectFiles();
 
@@ -47,7 +48,7 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     Guid guid = fmodGuid.ToGuid();
                     if (_collectedBank.SoundNameToGuid.TryAdd(wavSampleName, guid)) { continue; }
                     if (_collectedBank.SoundNameToGuid[wavSampleName] != guid) { 
-                        throw new NotImplementedException();
+                        throw new NotImplementedException(); // TODO works for my bank
                     }
                 }
             }
