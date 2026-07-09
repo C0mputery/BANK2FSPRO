@@ -22,24 +22,24 @@ public partial class Decompiler {
     }
 
     private void CreateBuiltinMetadata() {
-        XDocument document = XmlBuilder.CreateDocument(
+        XDocument masterAssetFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterAssetFolder", _masterAssetFolderGuid)
         );
-        document.Save(Path.Combine(_assetMetadataDirectory, $"{_masterAssetFolderGuid.AsFmodStringFormat()}.xml"));
+        masterAssetFolderMetadata.Save(Path.Combine(_assetMetadataDirectory, $"{_masterAssetFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterBankFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterBankFolder", _masterBankFolderGuid)
         );
-        document.Save(Path.Combine(_bankFolderMetadataDirectory, $"{_masterBankFolderGuid.AsFmodStringFormat()}.xml"));
+        masterBankFolderMetadata.Save(Path.Combine(_bankFolderMetadataDirectory, $"{_masterBankFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterEventFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterEventFolder", _masterEventFolderGuid,
                 XmlBuilder.Property("name", "Master")
             )
         );
-        document.Save(Path.Combine(_eventFolderMetadataDirectory, $"{_masterEventFolderGuid.AsFmodStringFormat()}.xml"));
+        masterEventFolderMetadata.Save(Path.Combine(_eventFolderMetadataDirectory, $"{_masterEventFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument platformMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("Platform", _masterPlatformGuid,
                 XmlBuilder.Property("hardwareType", "0"),
                 XmlBuilder.Property("name", "Desktop"),
@@ -47,9 +47,9 @@ public partial class Decompiler {
                 XmlBuilder.Property("speakerFormat", "5")
             )
         );
-        document.Save(Path.Combine(_platformMetadataDirectory, $"{_masterPlatformGuid.AsFmodStringFormat()}.xml"));
+        platformMetadata.Save(Path.Combine(_platformMetadataDirectory, $"{_masterPlatformGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument encodingSettingMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("EncodingSetting", _masterEncodingSettingGuid,
                 XmlBuilder.Property("encodingFormat", "3"),
                 XmlBuilder.Property("quality", "37"),
@@ -57,36 +57,36 @@ public partial class Decompiler {
                 XmlBuilder.Relationship("encodable", _masterPlatformGuid)
             )
         );
-        document.Save(Path.Combine(_encodingSettingMetadataDirectory, $"{_masterEncodingSettingGuid.AsFmodStringFormat()}.xml"));
+        encodingSettingMetadata.Save(Path.Combine(_encodingSettingMetadataDirectory, $"{_masterEncodingSettingGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterEffectPresetFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterEffectPresetFolder", _masterEffectPresetFolderGuid)
         );
-        document.Save(Path.Combine(_effectPresetFolderMetadataDirectory, $"{_masterEffectPresetFolderGuid.AsFmodStringFormat()}.xml"));
+        masterEffectPresetFolderMetadata.Save(Path.Combine(_effectPresetFolderMetadataDirectory, $"{_masterEffectPresetFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterParameterPresetFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterParameterPresetFolder", _masterParameterPresetFolderGuid)
         );
-        document.Save(Path.Combine(_parameterPresetFolderMetadataDirectory, $"{_masterParameterPresetFolderGuid.AsFmodStringFormat()}.xml"));
+        masterParameterPresetFolderMetadata.Save(Path.Combine(_parameterPresetFolderMetadataDirectory, $"{_masterParameterPresetFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument profilerSessionFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("ProfilerSessionFolder", _masterProfilerFolderGuid)
         );
-        document.Save(Path.Combine(_profilerFolderMetadataDirectory, $"{_masterProfilerFolderGuid.AsFmodStringFormat()}.xml"));
+        profilerSessionFolderMetadata.Save(Path.Combine(_profilerFolderMetadataDirectory, $"{_masterProfilerFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterSandboxFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterSandboxFolder", _masterSandboxFolderGuid)
         );
-        document.Save(Path.Combine(_sandboxFolderMetadataDirectory, $"{_masterSandboxFolderGuid.AsFmodStringFormat()}.xml"));
+        masterSandboxFolderMetadata.Save(Path.Combine(_sandboxFolderMetadataDirectory, $"{_masterSandboxFolderGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument snapshotListMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("SnapshotList", _masterSnapshotListGuid,
                 XmlBuilder.Relationship("mixer", _masterMixerGuid)
             )
         );
-        document.Save(Path.Combine(_snapshotGroupMetadataDirectory, $"{_masterSnapshotListGuid.AsFmodStringFormat()}.xml"));
+        snapshotListMetadata.Save(Path.Combine(_snapshotGroupMetadataDirectory, $"{_masterSnapshotListGuid.AsFmodStringFormat()}.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterBusMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MixerMaster", _masterMixerMasterGuid,
                 XmlBuilder.Property("name", "Master Bus"),
                 XmlBuilder.Relationship("effectChain", _masterEffectChainGuid),
@@ -101,24 +101,24 @@ public partial class Decompiler {
             ),
             XmlBuilder.Object("MixerBusFader", _masterFaderGuid)
         );
-        document.Save(Path.Combine(_metadataDirectory, "Master.xml"));
+        masterBusMetadata.Save(Path.Combine(_metadataDirectory, "Master.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument mixerMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("Mixer", _masterMixerGuid,
                 XmlBuilder.Relationship("masterBus", _masterMixerMasterGuid),
                 XmlBuilder.Relationship("snapshotList", _masterSnapshotListGuid)
             )
         );
-        document.Save(Path.Combine(_metadataDirectory, "Mixer.xml"));
+        mixerMetadata.Save(Path.Combine(_metadataDirectory, "Mixer.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument masterTagFolderMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("MasterTagFolder", _masterTagFolderGuid,
                 XmlBuilder.Property("name", "Master")
             )
         );
-        document.Save(Path.Combine(_metadataDirectory, "Tags.xml"));
+        masterTagFolderMetadata.Save(Path.Combine(_metadataDirectory, "Tags.xml"));
 
-        document = XmlBuilder.CreateDocument(
+        XDocument workspaceMetadata = XmlBuilder.CreateDocument(
             XmlBuilder.Object("Workspace", _masterWorkspaceGuid,
                 XmlBuilder.Relationship("masterEventFolder", _masterEventFolderGuid),
                 XmlBuilder.Relationship("masterTagFolder", _masterTagFolderGuid),
@@ -132,7 +132,7 @@ public partial class Decompiler {
                 XmlBuilder.Relationship("platforms", _masterPlatformGuid)
             )
         );
-        document.Save(Path.Combine(_metadataDirectory, "Workspace.xml"));
+        workspaceMetadata.Save(Path.Combine(_metadataDirectory, "Workspace.xml"));
     }
 
     private void CreateBankMetadata() {
