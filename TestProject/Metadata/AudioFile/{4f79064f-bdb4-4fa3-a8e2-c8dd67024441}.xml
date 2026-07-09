@@ -2,7 +2,10 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{4f79064f-bdb4-4fa3-a8e2-c8dd67024441}">
 		<property name="assetPath">
-			<value>Samurai Hit 5.wav</value>
+			<value>C.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>48</value>

@@ -2,10 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{71f2ace9-2227-4fed-8680-871fa5297256}">
 		<property name="assetPath">
-			<value>HK_MP5_9mm_foley_close_up_MKH60_mag_in_&amp;_out.wav</value>
-		</property>
-		<property name="isStreaming">
-			<value>true</value>
+			<value>A.wav</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>48</value>

@@ -36,28 +36,44 @@ Open Window → Mixer (or the Mixer tab).
 4. A new project already has a return bus named something like **Reverb**. Keep that one return. If you deleted it, right-click → **New Return** and name it `Reverb`.
 5. In the **VCAs** browser, right-click → **New VCA**. Name it `SFX_VCA`.
 6. Drag `SFX` and `Weapons` onto `SFX_VCA` (or right-click each bus → **Assign To VCA** → `SFX_VCA`).
-7. Select `SFX`. In the deck, move **Volume** and **Pitch** slightly off their defaults so those properties exist as non-default values.
+7. Select `SFX` in the mixer.
+   - The tall **dB slider** on the channel strip is **Volume**. Drag it slightly off `0 dB` (for example `-1 dB`).
+   - **Pitch** is not that slider. Look in the deck on the right for the bus **macros** (often a drawer labeled macros / MCR). Set **Pitch** slightly off `0 st` (for example `+1 st`).
+   - Alternate: on the mixing desk, enable the strip option **MCR**. That shows pitch (and max instances / stealing) as number boxes on the group bus channel strip.
 
 ---
 
 ## Step 3. Effects and a send
 
-Still in the Mixer, select bus strips and edit their **signal chains** (effect list on the strip / deck).
+Still in the **Mixer** window.
+
+**Where things are:**
+- Left side: **routing browser** (tree of buses: Master, `SFX`, `Weapons`, Reverb, …)
+- Center: **mixing desk** with vertical **mixer strips** (one column per bus; fader + meters). That is what “bus strips” means.
+- Bottom: the **deck**. Select a bus (click its name in the routing browser, or click its mixer strip) and the deck shows that bus’s **signal chain**.
+
+To add effects:
+1. Click the `SFX` mixer strip (or click `SFX` in the routing browser).
+2. Look at the **deck** at the bottom.
+3. Right-click empty space in the deck → **Add Effect** / **Insert Effect**.
+4. Repeat for the other buses as needed.
 
 Put **one** of each effect somewhere on `SFX`, `Weapons`, or `Reverb`. One instance each is enough:
 
-| Effect | Where |
-|---|---|
-| Multiband EQ | `SFX` |
-| Multiband Dynamics | `SFX` |
-| Chorus | `Weapons` |
-| Flange | `Weapons` |
-| Delay | `Weapons` |
-| Distortion | `Weapons` |
-| Lowpass Simple | `Weapons` |
-| Pitch Shifter | `Weapons` |
-| Loudness Meter | `SFX` |
-| Convolution Reverb | `Reverb` return |
+| Effect | Where | Notes |
+|---|---|---|
+| Multiband EQ | `SFX` | Required. Bank raw DSP id `36` in 2018-era numbering. |
+| Chorus | `Weapons` | |
+| Flange | `Weapons` | |
+| Delay | `Weapons` | |
+| Distortion | `Weapons` | |
+| Lowpass Simple | `Weapons` | |
+| Pitch Shifter | `Weapons` | May be listed as **Pitch Shifter** or **Pitchshift**. |
+| Loudness Meter | `SFX` | |
+| Convolution Reverb | `Reverb` return | May already exist on the default Reverb return; keep/replace as needed. |
+| Channel Mix | `Weapons` | Optional. Bank has **1** effect with raw id `33`, which in 2018 Core API terms is **Channel Mix**, not Multiband Dynamics. |
+
+**Do not add Multiband Dynamics.** That effect only exists in FMOD Studio **2.03+**. Your Master Bank is file version `0x64` (2018-era). The feature dump’s `MULTIBAND_DYNAMICS` label is a parser enum mismatch: `FModBankParser`’s modern `EDSPType` renamed raw value `33`, which was **Channel Mix** in the 2018 `FMOD_DSP_TYPE` list.
 
 Then add a send:
 
@@ -247,6 +263,15 @@ These appear in FMOD Studio but **not** in the RehabG bank feature dump:
 
 ---
 
-## Note: DSP type 36
+## Note: DSP ids vs parser names
 
-In older `FMOD_DSP_TYPE` enums that still include plugin slots, **36 = Multiband EQ**. `FModBankParser`’s `EDSPType` renumbers that effect to `0x20` (32), which is why the feature dump printed raw `36`.
+Your Master Bank is **file version `0x64`** (2018-era Studio). Multiband Dynamics did not exist yet.
+
+In the 2018 `FMOD_DSP_TYPE` enum (still including old plugin slots):
+
+| Raw id in bank | 2018 meaning | Count in bank | What `FModBankParser` prints |
+|---|---|---|---|
+| 36 | **Multiband EQ** | 11 | unnamed `36` |
+| 33 | **Channel Mix** | 1 | wrongly `MULTIBAND_DYNAMICS` |
+
+So for the test project: add **Multiband EQ**, optionally **Channel Mix**, and ignore Multiband Dynamics entirely.

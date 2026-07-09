@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{dae7ab25-f8a1-459e-85e6-9065d8346927}">
 		<property name="assetPath">
-			<value>orbital explosion.wav</value>
+			<value>B.wav</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>48</value>
