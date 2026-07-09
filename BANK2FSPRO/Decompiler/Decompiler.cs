@@ -28,6 +28,7 @@ public partial class Decompiler {
     public readonly Dictionary<string, FModGuid> SoundFileReferences = new Dictionary<string, FModGuid>();
     public void Decompile() {
         SetupGuids();
+        SetupPaths();
         CollectNodes();
 
         SetupProjectFiles();
@@ -69,12 +70,10 @@ public partial class Decompiler {
     }
     
     private void ExtractSoundFiles() {
-        string metadataFileDirectory = Path.Combine(_outputDirectory, "Metadata", "AudioFile");
-
         foreach (FModReader bank in _banks) {
             if (bank.SoundBankData.Count == 0) { continue; }
 
-            string soundFileDirectory = Path.Combine(_outputDirectory, "Assets", bank.BankName);
+            string soundFileDirectory = Path.Combine(_assetsDirectory, bank.BankName);
             Directory.CreateDirectory(soundFileDirectory);
 
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
@@ -100,7 +99,7 @@ public partial class Decompiler {
                                 XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
                             )
                         ),
-                        Path.Combine(metadataFileDirectory, $"{soundGuid.ToFmodFormat()}.xml")
+                        Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml")
                     );
                 }
             }

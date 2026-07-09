@@ -16,7 +16,7 @@ internal static class XmlBuilder {
     public static XElement Object(string className, Guid id, params object[] content) {
         return new XElement("object",
             new XAttribute("class", className),
-            new XAttribute("id", id.ToFmodFormat()),
+            new XAttribute("id", id.AsFmodStringFormat()),
             content
         );
     }
@@ -38,14 +38,14 @@ internal static class XmlBuilder {
     public static XElement Relationship(string name, Guid destination) {
         return new XElement("relationship",
             new XAttribute("name", name),
-            new XElement("destination", destination.ToFmodFormat())
+            new XElement("destination", destination.AsFmodStringFormat())
         );
     }
 
     public static XElement Relationship(string name, IEnumerable<Guid> destinations) {
         return new XElement("relationship",
             new XAttribute("name", name),
-            destinations.Select(d => new XElement("destination", d.ToFmodFormat()))
+            destinations.Select(d => new XElement("destination", d.AsFmodStringFormat()))
         );
     }
 

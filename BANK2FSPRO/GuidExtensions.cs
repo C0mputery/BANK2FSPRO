@@ -25,5 +25,5 @@ public static class GuidExtensions {
         }
     }
 
-    public static string ToFmodFormat(this Guid guid) { return $"{{{guid}}}"; }
+    public static string AsFmodStringFormat(this Guid guid) { return $"{{{guid}}}"; }
 }

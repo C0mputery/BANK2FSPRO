@@ -7,8 +7,8 @@ public partial class Decompiler {
     private void SetupProjectFiles() {
         if (Directory.Exists(_outputDirectory)) { Directory.Delete(_outputDirectory, true); }
         Directory.CreateDirectory(_outputDirectory);
-        Directory.CreateDirectory(Path.Combine(_outputDirectory, "Assets"));
-        Directory.CreateDirectory(Path.Combine(_outputDirectory, "Metadata"));
+        Directory.CreateDirectory(_assetsDirectory);
+        Directory.CreateDirectory(_metadataDirectory);
 
         CreateFsproFile();
         CreateBuiltinMetadata();
@@ -23,20 +23,18 @@ public partial class Decompiler {
     }
 
     private void CreateBuiltinMetadata() {
-        string metadata = Path.Combine(_outputDirectory, "Metadata");
-
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("MasterAssetFolder", _masterAssetFolderGuid)
             ),
-            Path.Combine(metadata, "Asset", $"{_masterAssetFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_assetMetadataDirectory, $"{_masterAssetFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("MasterBankFolder", _masterBankFolderGuid)
             ),
-            Path.Combine(metadata, "BankFolder", $"{_masterBankFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_bankFolderMetadataDirectory, $"{_masterBankFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
@@ -45,7 +43,7 @@ public partial class Decompiler {
                     XmlBuilder.Property("name", "Master")
                 )
             ),
-            Path.Combine(metadata, "EventFolder", $"{_masterEventFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_eventFolderMetadataDirectory, $"{_masterEventFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
@@ -57,7 +55,7 @@ public partial class Decompiler {
                     XmlBuilder.Property("speakerFormat", "5")
                 )
             ),
-            Path.Combine(metadata, "Platform", $"{_masterPlatformGuid.ToFmodFormat()}.xml")
+            Path.Combine(_platformMetadataDirectory, $"{_masterPlatformGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
@@ -69,35 +67,35 @@ public partial class Decompiler {
                     XmlBuilder.Relationship("encodable", _masterPlatformGuid)
                 )
             ),
-            Path.Combine(metadata, "EncodingSetting", $"{_masterEncodingSettingGuid.ToFmodFormat()}.xml")
+            Path.Combine(_encodingSettingMetadataDirectory, $"{_masterEncodingSettingGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("MasterEffectPresetFolder", _masterEffectPresetFolderGuid)
             ),
-            Path.Combine(metadata, "EffectPresetFolder", $"{_masterEffectPresetFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_effectPresetFolderMetadataDirectory, $"{_masterEffectPresetFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("MasterParameterPresetFolder", _masterParameterPresetFolderGuid)
             ),
-            Path.Combine(metadata, "ParameterPresetFolder", $"{_masterParameterPresetFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_parameterPresetFolderMetadataDirectory, $"{_masterParameterPresetFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("ProfilerSessionFolder", _masterProfilerFolderGuid)
             ),
-            Path.Combine(metadata, "ProfilerFolder", $"{_masterProfilerFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_profilerFolderMetadataDirectory, $"{_masterProfilerFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
             XmlBuilder.CreateDocument(
                 XmlBuilder.Object("MasterSandboxFolder", _masterSandboxFolderGuid)
             ),
-            Path.Combine(metadata, "SandboxFolder", $"{_masterSandboxFolderGuid.ToFmodFormat()}.xml")
+            Path.Combine(_sandboxFolderMetadataDirectory, $"{_masterSandboxFolderGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
@@ -106,7 +104,7 @@ public partial class Decompiler {
                     XmlBuilder.Relationship("mixer", _masterMixerGuid)
                 )
             ),
-            Path.Combine(metadata, "SnapshotGroup", $"{_masterSnapshotListGuid.ToFmodFormat()}.xml")
+            Path.Combine(_snapshotGroupMetadataDirectory, $"{_masterSnapshotListGuid.AsFmodStringFormat()}.xml")
         );
 
         XmlBuilder.Save(
@@ -125,7 +123,7 @@ public partial class Decompiler {
                 ),
                 XmlBuilder.Object("MixerBusFader", _masterFaderGuid)
             ),
-            Path.Combine(metadata, "Master.xml")
+            Path.Combine(_metadataDirectory, "Master.xml")
         );
 
         XmlBuilder.Save(
@@ -135,7 +133,7 @@ public partial class Decompiler {
                     XmlBuilder.Relationship("snapshotList", _masterSnapshotListGuid)
                 )
             ),
-            Path.Combine(metadata, "Mixer.xml")
+            Path.Combine(_metadataDirectory, "Mixer.xml")
         );
 
         XmlBuilder.Save(
@@ -144,7 +142,7 @@ public partial class Decompiler {
                     XmlBuilder.Property("name", "Master")
                 )
             ),
-            Path.Combine(metadata, "Tags.xml")
+            Path.Combine(_metadataDirectory, "Tags.xml")
         );
 
         XmlBuilder.Save(
@@ -162,13 +160,11 @@ public partial class Decompiler {
                     XmlBuilder.Relationship("platforms", _masterPlatformGuid)
                 )
             ),
-            Path.Combine(metadata, "Workspace.xml")
+            Path.Combine(_metadataDirectory, "Workspace.xml")
         );
     }
 
     private void CreateBankMetadata() {
-        string metadata = Path.Combine(_outputDirectory, "Metadata");
-
         foreach (FModReader bank in _banks) {
             if (ReferenceEquals(bank, _stringBank)) { continue; }
             if (bank.BankName.Contains(".strings", StringComparison.OrdinalIgnoreCase)) { continue; }
@@ -190,7 +186,7 @@ public partial class Decompiler {
                             XmlBuilder.Relationship("folder", _masterBankFolderGuid)
                         )
                     ),
-                    Path.Combine(metadata, "Bank", $"{bankGuid.ToFmodFormat()}.xml")
+                    Path.Combine(_bankMetadataDirectory, $"{bankGuid.AsFmodStringFormat()}.xml")
                 );
             }
             else {
@@ -201,7 +197,7 @@ public partial class Decompiler {
                             XmlBuilder.Relationship("folder", _masterBankFolderGuid)
                         )
                     ),
-                    Path.Combine(metadata, "Bank", $"{bankGuid.ToFmodFormat()}.xml")
+                    Path.Combine(_bankMetadataDirectory, $"{bankGuid.AsFmodStringFormat()}.xml")
                 );
             }
 
@@ -213,7 +209,7 @@ public partial class Decompiler {
                         XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
                     )
                 ),
-                Path.Combine(metadata, "Asset", $"{assetGuid.ToFmodFormat()}.xml")
+                Path.Combine(_assetMetadataDirectory, $"{assetGuid.AsFmodStringFormat()}.xml")
             );
         }
     }
