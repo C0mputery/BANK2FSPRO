@@ -35,30 +35,6 @@ public partial class Decompiler {
         ExtractSoundFiles();
     }
 
-    public Guid MasterBankFolderGuid = Guid.Empty;
-    private void SetupGuids() {
-        MasterBankFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, _projectName);
-    }
-
-    private void SetupProjectFiles() { 
-        if (Directory.Exists(_outputDirectory)) { Directory.Delete(_outputDirectory, true); }
-        Directory.CreateDirectory(_outputDirectory);
-        
-        string bankFolderDirectory = Path.Combine(_outputDirectory, "Metadata", "BankFolder");
-        
-        XmlBuilder.Save(
-            XmlBuilder.CreateDocument(),
-            Path.Combine(_outputDirectory, $"{_projectName}.fspro")
-        );
-        
-        XmlBuilder.Save(
-            XmlBuilder.CreateDocument(
-                XmlBuilder.Object("MasterBankFolder", MasterBankFolderGuid)
-            ),
-            Path.Combine(bankFolderDirectory, $"{MasterBankFolderGuid.ToFmodFormat()}.xml")
-        );
-    }
-    
     private void CollectNodes() {
         foreach (FModReader bank in _banks) {
             foreach ((FModGuid key, EventNode node) in bank.EventNodes) { _collectedBank.EventNodes.TryAdd(key.ToGuid(), node); }
@@ -103,17 +79,15 @@ public partial class Decompiler {
 
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
                 foreach (FmodSample samples in soundBank.Samples) {
-                    string name = samples.Name!; // TODO works for my bank
+                    if (samples.Name == null) { throw new NotImplementedException(); } // TODO works for my bank
                     
-                    if (!samples.RebuildAsStandardFileFormat(out byte[]? data, out string? extension)) {
-                        throw new NotImplementedException(); // TODO works for my bank
-                    }
-                    string filePath = Path.Combine(soundFileDirectory, $"{name}.{extension}");
+                    if (!samples.RebuildAsStandardFileFormat(out byte[]? data, out string? extension)) { throw new NotImplementedException(); } // TODO works for my bank
+                    string filePath = Path.Combine(soundFileDirectory, $"{samples.Name}.{extension}");
                     File.WriteAllBytes(filePath, data);
 
                     if (samples.Metadata == null) { throw new NotImplementedException(); } // TODO works for my bank
 
-                    if (!_collectedBank.SoundNameToGuid.TryGetValue(name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
+                    if (!_collectedBank.SoundNameToGuid.TryGetValue(samples.Name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
 
                     string assetPath = filePath.Replace("\\", "/");
                     XmlBuilder.Save(
@@ -123,7 +97,7 @@ public partial class Decompiler {
                                 XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
                                 XmlBuilder.Property("channelCount", samples.Metadata.Channels),
                                 XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
-                                XmlBuilder.Relationship("masterAssetFolder", MasterBankFolderGuid)
+                                XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
                             )
                         ),
                         Path.Combine(metadataFileDirectory, $"{soundGuid.ToFmodFormat()}.xml")
