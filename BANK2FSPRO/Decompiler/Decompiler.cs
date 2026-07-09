@@ -72,21 +72,20 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
             string soundFileDirectory = Path.Combine(_assetsDirectory, bankName);
             Directory.CreateDirectory(soundFileDirectory);
 
-            Directory.CreateDirectory(soundFileDirectory);
-
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
                 foreach (FmodSample samples in soundBank.Samples) {
                     if (samples.Name == null) { throw new NotImplementedException(); } // TODO works for my bank
 
                     if (!samples.RebuildAsStandardFileFormat(out byte[]? data, out string? extension)) { throw new NotImplementedException(); } // TODO works for my bank
-                    string filePath = Path.Combine(soundFileDirectory, $"{samples.Name}.{extension}");
+                    string fileName = $"{samples.Name}.{extension}";
+                    string filePath = Path.Combine(soundFileDirectory, fileName);
                     File.WriteAllBytes(filePath, data);
 
                     if (samples.Metadata == null) { throw new NotImplementedException(); } // TODO works for my bank
 
                     if (!_collectedBank.SoundNameToGuid.TryGetValue(samples.Name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
 
-                    string assetPath = filePath.Replace("\\", "/");
+                    string assetPath = $"{bankName}/{fileName}";
                     XDocument document = XmlBuilder.CreateDocument(
                         XmlBuilder.Object("AudioFile", soundGuid,
                             XmlBuilder.Property("assetPath", assetPath),
