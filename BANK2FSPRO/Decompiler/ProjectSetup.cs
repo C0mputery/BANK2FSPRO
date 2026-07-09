@@ -6,11 +6,6 @@ namespace BANK2FSPRO;
 
 public partial class Decompiler {
     private void SetupProjectFiles() {
-        if (Directory.Exists(_outputDirectory)) { Directory.Delete(_outputDirectory, true); }
-        Directory.CreateDirectory(_outputDirectory);
-        Directory.CreateDirectory(_assetsDirectory);
-        Directory.CreateDirectory(_metadataDirectory);
-
         CreateFsproFile();
         CreateBuiltinMetadata();
         CreateBankMetadata();
@@ -137,14 +132,10 @@ public partial class Decompiler {
 
     private void CreateBankMetadata() {
         foreach (FModReader bank in _banks) {
-            if (ReferenceEquals(bank, _stringBank)) { continue; }
-            if (bank.BankName.Contains(".strings", StringComparison.OrdinalIgnoreCase)) { continue; }
-
-            string bankName = bank.BankName.EndsWith(".bank", StringComparison.OrdinalIgnoreCase)
-                ? bank.BankName[..^5]
-                : bank.BankName;
+            string bankName = Path.GetFileNameWithoutExtension(bank.BankName);
             string bankAssetPath = $"{bankName}/";
-            bool isMasterBank = ReferenceEquals(bank, _masterBank) || bank.BusNodes.Values.Any(b => b is MasterBusNode);
+            
+            bool isMasterBank = bank == _masterBank;
 
             Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
             if (isMasterBank) {

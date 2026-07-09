@@ -1,3 +1,5 @@
+using FModBankParser;
+
 namespace BANK2FSPRO;
 
 public partial class Decompiler {
@@ -16,7 +18,7 @@ public partial class Decompiler {
     private string _sandboxFolderMetadataDirectory = string.Empty;
     private string _snapshotGroupMetadataDirectory = string.Empty;
 
-    private void SetupPaths() {
+    private void SetupDirectories() {
         _assetsDirectory = Path.Combine(_outputDirectory, "Assets");
         _metadataDirectory = Path.Combine(_outputDirectory, "Metadata");
         _audioFileMetadataDirectory = Path.Combine(_metadataDirectory, "AudioFile");
@@ -31,5 +33,28 @@ public partial class Decompiler {
         _profilerFolderMetadataDirectory = Path.Combine(_metadataDirectory, "ProfilerFolder");
         _sandboxFolderMetadataDirectory = Path.Combine(_metadataDirectory, "SandboxFolder");
         _snapshotGroupMetadataDirectory = Path.Combine(_metadataDirectory, "SnapshotGroup");
+
+        if (Directory.Exists(_outputDirectory)) { Directory.Delete(_outputDirectory, true); }
+
+        Directory.CreateDirectory(_outputDirectory);
+        Directory.CreateDirectory(_assetsDirectory);
+        Directory.CreateDirectory(_metadataDirectory);
+        Directory.CreateDirectory(_audioFileMetadataDirectory);
+        Directory.CreateDirectory(_bankMetadataDirectory);
+        Directory.CreateDirectory(_assetMetadataDirectory);
+        Directory.CreateDirectory(_bankFolderMetadataDirectory);
+        Directory.CreateDirectory(_eventFolderMetadataDirectory);
+        Directory.CreateDirectory(_platformMetadataDirectory);
+        Directory.CreateDirectory(_encodingSettingMetadataDirectory);
+        Directory.CreateDirectory(_effectPresetFolderMetadataDirectory);
+        Directory.CreateDirectory(_parameterPresetFolderMetadataDirectory);
+        Directory.CreateDirectory(_profilerFolderMetadataDirectory);
+        Directory.CreateDirectory(_sandboxFolderMetadataDirectory);
+        Directory.CreateDirectory(_snapshotGroupMetadataDirectory);
+
+        foreach (FModReader bank in _banks) {
+            if (bank.SoundBankData.Count == 0) { continue; }
+            Directory.CreateDirectory(Path.Combine(_assetsDirectory, bank.BankName));
+        }
     }
 }

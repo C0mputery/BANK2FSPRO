@@ -30,7 +30,7 @@ public partial class Decompiler {
 
     public void Decompile() {
         SetupGuids();
-        SetupPaths();
+        SetupDirectories();
 
         CollectNodes();
 
@@ -48,7 +48,7 @@ public partial class Decompiler {
             foreach ((FModGuid key, BaseTransitionNode node) in bank.TransitionNodes) { _collectedBank.TransitionNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, BaseInstrumentNode node) in bank.InstrumentNodes) { _collectedBank.InstrumentNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, WaveformResourceNode node) in bank.WavEntries) {
-                _collectedBank.WavEntries.TryAdd(key.ToGuid(), node);
+                _collectedBank.WavEntries.Add(key.ToGuid(), node);
 
                 foreach ((FModGuid fmodGuid, WaveformResourceNode waveformResourceNode) in bank.WavEntries) {
                     string? wavSampleName = bank.SoundBankData[waveformResourceNode.SoundBankIndex].Samples[waveformResourceNode.SubsoundIndex].Name;
@@ -57,7 +57,10 @@ public partial class Decompiler {
                     }
 
                     Guid guid = fmodGuid.ToGuid();
-                    _collectedBank.SoundNameToGuid.Add(wavSampleName, guid);
+                    if (_collectedBank.SoundNameToGuid.TryAdd(wavSampleName, guid)) { continue; }
+                    if (_collectedBank.SoundNameToGuid[wavSampleName] != guid) { 
+                        throw new NotImplementedException();
+                    }
                 }
             }
             foreach ((FModGuid key, ParameterNode node) in bank.ParameterNodes) { _collectedBank.ParameterNodes.TryAdd(key.ToGuid(), node); }
