@@ -33,9 +33,9 @@ public partial class Decompiler {
         document.Save(Path.Combine(_bankFolderMetadataDirectory, $"{_masterBankFolderGuid.AsFmodStringFormat()}.xml"));
 
         document = XmlBuilder.CreateDocument(
-            XmlBuilder.Object("MasterEventFolder", _masterEventFolderGuid, 
+            XmlBuilder.Object("MasterEventFolder", _masterEventFolderGuid,
                 XmlBuilder.Property("name", "Master")
-                )
+            )
         );
         document.Save(Path.Combine(_eventFolderMetadataDirectory, $"{_masterEventFolderGuid.AsFmodStringFormat()}.xml"));
 
@@ -144,8 +144,7 @@ public partial class Decompiler {
                 ? bank.BankName[..^5]
                 : bank.BankName;
             string bankAssetPath = $"{bankName}/";
-            bool isMasterBank = ReferenceEquals(bank, _masterBank)
-                || bank.BusNodes.Values.Any(b => b is MasterBusNode);
+            bool isMasterBank = ReferenceEquals(bank, _masterBank) || bank.BusNodes.Values.Any(b => b is MasterBusNode);
 
             Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
             if (isMasterBank) {

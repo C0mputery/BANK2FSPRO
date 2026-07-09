@@ -25,16 +25,17 @@ public partial class Decompiler {
     private readonly FModReader[] _banks;
     private readonly string _projectName;
     private readonly CollectedBank _collectedBank = new CollectedBank();
-    
+
     public readonly Dictionary<string, FModGuid> SoundFileReferences = new Dictionary<string, FModGuid>();
+
     public void Decompile() {
         SetupGuids();
         SetupPaths();
-        
+
         CollectNodes();
 
         SetupProjectFiles();
-        
+
         ExtractSoundFiles();
     }
 
@@ -48,7 +49,7 @@ public partial class Decompiler {
             foreach ((FModGuid key, BaseInstrumentNode node) in bank.InstrumentNodes) { _collectedBank.InstrumentNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, WaveformResourceNode node) in bank.WavEntries) {
                 _collectedBank.WavEntries.TryAdd(key.ToGuid(), node);
-                
+
                 foreach ((FModGuid fmodGuid, WaveformResourceNode waveformResourceNode) in bank.WavEntries) {
                     string? wavSampleName = bank.SoundBankData[waveformResourceNode.SoundBankIndex].Samples[waveformResourceNode.SubsoundIndex].Name;
                     if (wavSampleName is null) {
@@ -70,7 +71,7 @@ public partial class Decompiler {
             foreach ((FModGuid key, VCANode node) in bank.VCANodes) { _collectedBank.VCANodes.TryAdd(key.ToGuid(), node); }
         }
     }
-    
+
     private void ExtractSoundFiles() {
         foreach (FModReader bank in _banks) {
             if (bank.SoundBankData.Count == 0) { continue; }
@@ -81,7 +82,7 @@ public partial class Decompiler {
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
                 foreach (FmodSample samples in soundBank.Samples) {
                     if (samples.Name == null) { throw new NotImplementedException(); } // TODO works for my bank
-                    
+
                     if (!samples.RebuildAsStandardFileFormat(out byte[]? data, out string? extension)) { throw new NotImplementedException(); } // TODO works for my bank
                     string filePath = Path.Combine(soundFileDirectory, $"{samples.Name}.{extension}");
                     File.WriteAllBytes(filePath, data);

@@ -9,7 +9,7 @@ public static class GuidExtensions {
             using SHA1 sha1 = SHA1.Create();
             byte[] namespaceBytes = namespaceGuid.ToByteArray();
             byte[] nameBytes = Encoding.UTF8.GetBytes(name);
-            
+
             byte[] combinedBytes = new byte[namespaceBytes.Length + nameBytes.Length];
             Buffer.BlockCopy(namespaceBytes, 0, combinedBytes, 0, namespaceBytes.Length);
             Buffer.BlockCopy(nameBytes, 0, combinedBytes, namespaceBytes.Length, nameBytes.Length);
