@@ -19,12 +19,9 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
     public void Decompile() {
         SetupGuids();
         SetupDirectories();
-
-        CollectNodes();
-        _collectedBank.Debug();
-
         SetupProjectFiles();
 
+        CollectNodes();
         ExtractSoundFiles();
     }
 
