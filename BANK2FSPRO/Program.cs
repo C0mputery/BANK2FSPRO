@@ -1,7 +1,33 @@
-﻿namespace BANK2FSPRO;
+﻿using FModBankParser;
+using FModBankParser.Nodes.Buses;
 
-class Program {
+namespace BANK2FSPRO;
+
+internal static class Program {
+    const string TargetBanks = @"C:\Users\Computery\Desktop\StreamingAssets";
+    const string ProjectOutput = @"S:\RehabG\FmodProjectNew";
+
     static void Main(string[] args) {
-        Console.WriteLine("Hello, World!");
+        string[] stringBankFiles = Directory.GetFiles(TargetBanks, "*.strings.bank");
+        if (stringBankFiles.Length != 1) { throw new NotImplementedException(); } // TODO
+
+        string stringBankPath = stringBankFiles[0];
+        string[] bankFiles = Directory.GetFiles(TargetBanks, "*.bank");
+
+        FModReader stringBank = FModBankParser.FModBankParser.LoadSoundBank(new FileInfo(stringBankPath));
+        if (stringBank.StringTable == null) { throw new NotImplementedException(); } // TODO
+        
+        FModReader? masterBank = null;
+        List<FModReader> banks = [];
+        foreach (string bankFile in bankFiles) {
+            FModReader bank = FModBankParser.FModBankParser.LoadSoundBank(new FileInfo(bankFile));
+            bool isMaster = bank.BusNodes.Values.Any(b => b is MasterBusNode); // only the master bank has the mixer/buses
+            if (isMaster)  { masterBank = bank; }
+            banks.Add(bank);
+        }
+        if (masterBank == null) { throw new NotImplementedException(); } // TODO
+
+        Decompiler decompiler = new Decompiler(ProjectOutput, stringBank, masterBank, banks.ToArray(), "RehabG");
+        decompiler.Decompile(); 
     }
 }
