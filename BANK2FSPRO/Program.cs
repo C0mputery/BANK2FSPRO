@@ -16,18 +16,18 @@ internal static class Program {
 
         FModReader stringBank = FModBankParser.FModBankParser.LoadSoundBank(new FileInfo(stringBankPath));
         if (stringBank.StringTable == null) { throw new NotImplementedException(); } // TODO
-        
+
         FModReader? masterBank = null;
         List<FModReader> banks = [];
         foreach (string bankFile in bankFiles) {
             FModReader bank = FModBankParser.FModBankParser.LoadSoundBank(new FileInfo(bankFile));
             bool isMaster = bank.BusNodes.Values.Any(b => b is MasterBusNode); // only the master bank has the mixer/buses
-            if (isMaster)  { masterBank = bank; }
+            if (isMaster) { masterBank = bank; }
             banks.Add(bank);
         }
         if (masterBank == null) { throw new NotImplementedException(); } // TODO
 
         Decompiler decompiler = new Decompiler(ProjectOutput, stringBank, masterBank, banks.ToArray(), "RehabG");
-        decompiler.Decompile(); 
+        decompiler.Decompile();
     }
 }

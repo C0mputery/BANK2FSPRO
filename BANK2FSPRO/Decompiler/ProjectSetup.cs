@@ -33,9 +33,9 @@ public partial class Decompiler {
         document.Save(Path.Combine(_bankFolderMetadataDirectory, $"{_masterBankFolderGuid.AsFmodStringFormat()}.xml"));
 
         document = XmlBuilder.CreateDocument(
-            XmlBuilder.Object("MasterEventFolder", _masterEventFolderGuid,
+            XmlBuilder.Object("MasterEventFolder", _masterEventFolderGuid, 
                 XmlBuilder.Property("name", "Master")
-            )
+                )
         );
         document.Save(Path.Combine(_eventFolderMetadataDirectory, $"{_masterEventFolderGuid.AsFmodStringFormat()}.xml"));
 
