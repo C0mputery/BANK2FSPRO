@@ -32,7 +32,18 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
     private void CollectNodes() {
         foreach (FModReader bank in banks) {
-            foreach ((FModGuid key, EventNode node) in bank.EventNodes) { _collectedBank.EventNodes.TryAdd(key.ToGuid(), node); }
+            Guid bankGuid = bank.BankInfo.BaseGuid.ToGuid();
+            foreach ((FModGuid key, EventNode node) in bank.EventNodes) {
+                Guid eventGuid = key.ToGuid();
+                _collectedBank.EventNodes.TryAdd(eventGuid, node);
+                if (!_collectedBank.EventToBanks.TryGetValue(eventGuid, out List<Guid>? bankGuids)) {
+                    bankGuids = [];
+                    _collectedBank.EventToBanks[eventGuid] = bankGuids;
+                }
+                if (!bankGuids.Contains(bankGuid)) {
+                    bankGuids.Add(bankGuid);
+                }
+            }
             foreach ((FModGuid key, BaseBusNode node) in bank.BusNodes) { _collectedBank.BusNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, BaseEffectNode node) in bank.EffectNodes) { _collectedBank.EffectNodes.TryAdd(key.ToGuid(), node); }
             foreach ((FModGuid key, TimelineNode node) in bank.TimelineNodes) { _collectedBank.TimelineNodes.TryAdd(key.ToGuid(), node); }

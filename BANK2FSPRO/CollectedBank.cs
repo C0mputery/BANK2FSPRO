@@ -14,6 +14,7 @@ public class CollectedBank {
     public readonly Dictionary<string, Guid> SoundNameToGuid = new Dictionary<string, Guid>();
 
     public readonly Dictionary<Guid, EventNode> EventNodes = new Dictionary<Guid, EventNode>();
+    public readonly Dictionary<Guid, List<Guid>> EventToBanks = new Dictionary<Guid, List<Guid>>();
     public readonly Dictionary<Guid, BaseBusNode> BusNodes = new Dictionary<Guid, BaseBusNode>();
     public readonly Dictionary<Guid, BaseEffectNode> EffectNodes = new Dictionary<Guid, BaseEffectNode>();
     public readonly Dictionary<Guid, TimelineNode> TimelineNodes = new Dictionary<Guid, TimelineNode>();

@@ -154,6 +154,9 @@ public partial class Decompiler {
         if (parameterProxyGuids.Count > 0) {
             eventContent.Add(XmlBuilder.Relationship("parameters", parameterProxyGuids));
         }
+        if (_collectedBank.EventToBanks.TryGetValue(eventGuid, out List<Guid>? bankGuids) && bankGuids.Count > 0) {
+            eventContent.Add(XmlBuilder.Relationship("banks", bankGuids));
+        }
 
         documentObjects.Add(XmlBuilder.Object("Event", eventGuid, eventContent.ToArray()));
         documentObjects.Add(XmlBuilder.Object("EventMixer", eventMixerGuid,
