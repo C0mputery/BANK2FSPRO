@@ -5,7 +5,7 @@ namespace BANK2FSPRO;
 
 internal static class Program {
     const string TargetBanks = @"C:\Users\Computery\Desktop\StreamingAssets";
-    const string ProjectOutput = @"S:\RehabG\FmodProjectNew";
+    const string ProjectOutput = @"S:\RehabG\FmodProject";
 
     static void Main(string[] args) {
         string[] stringBankFiles = Directory.GetFiles(TargetBanks, "*.strings.bank");

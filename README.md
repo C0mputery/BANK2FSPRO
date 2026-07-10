@@ -8,5 +8,6 @@ Big chunk of it is slop because I realized that I already had made the test proj
 
 If you're looking to decompile your own Fmod Bank, given you only have to do one ever, it's probably just a good idea to dump all of the features that it uses, and make something bespoke 
 
-Don't ask me about any feature past extracting the parameters, it's total slop, didnt read it, just validated the output
+Don't ask me about any feature past extracting the parameters, it's total slop, didnt read it, just validated the output 
+
 also check out DebugHelper its peak, it's also slop. I should make some actual good software like it tho, a full debugging lib like it would be funny.
