@@ -53,10 +53,8 @@ public partial class Decompiler {
             List<object> autopitchContent = [
                 XmlBuilder.Property("nameOfPropertyBeingModulated", "pitch"),
                 XmlBuilder.Property("root", instrument.InstrumentBody.AutoPitchReference),
+                XmlBuilder.Property("valueAtMin", instrument.InstrumentBody.AutoPitchAtMinimum),
             ];
-            if (instrument.InstrumentBody.AutoPitchAtMinimum != 0) {
-                autopitchContent.Add(XmlBuilder.Property("valueAtMin", instrument.InstrumentBody.AutoPitchAtMinimum));
-            }
             documentObjects.Add(XmlBuilder.Object("AutopitchModulator", autopitchGuid, autopitchContent.ToArray()));
         }
 
@@ -100,11 +98,9 @@ public partial class Decompiler {
             List<object> pointContent = [
                 XmlBuilder.Property("position", point.X),
                 XmlBuilder.Property("value", point.Y),
+                XmlBuilder.Property("curveShape", point.Shape),
+                XmlBuilder.Property("isSCurve", point.Shape != 0),
             ];
-            if (point.Shape != 0) {
-                pointContent.Add(XmlBuilder.Property("curveShape", point.Shape));
-                pointContent.Add(XmlBuilder.Property("isSCurve", true));
-            }
             curveObjects.Add(XmlBuilder.Object("AutomationPoint", pointGuid, pointContent.ToArray()));
         }
 
@@ -128,18 +124,18 @@ public partial class Decompiler {
             case ADSRModulatorNode adsr: {
                 List<object> content = [
                     XmlBuilder.Property("nameOfPropertyBeingModulated", propertyName),
+                    XmlBuilder.Property("initialValue", adsr.InitialValue),
+                    XmlBuilder.Property("peakValue", adsr.PeakValue),
+                    XmlBuilder.Property("sustainValue", adsr.SustainValue),
+                    XmlBuilder.Property("attackTime", adsr.AttackTime),
+                    XmlBuilder.Property("holdTime", adsr.HoldTime),
+                    XmlBuilder.Property("decayTime", adsr.DecayTime),
+                    XmlBuilder.Property("releaseTime", adsr.ReleaseTime),
+                    XmlBuilder.Property("attackShape", adsr.AttackShape),
+                    XmlBuilder.Property("decayShape", adsr.DecayShape),
+                    XmlBuilder.Property("releaseShape", adsr.ReleaseShape),
                 ];
-                if (adsr.InitialValue != 0) { content.Add(XmlBuilder.Property("initialValue", adsr.InitialValue)); }
-                if (adsr.PeakValue != 0) { content.Add(XmlBuilder.Property("peakValue", adsr.PeakValue)); }
-                if (adsr.SustainValue != 0) { content.Add(XmlBuilder.Property("sustainValue", adsr.SustainValue)); }
-                if (adsr.AttackTime != 0) { content.Add(XmlBuilder.Property("attackTime", adsr.AttackTime)); }
-                if (adsr.HoldTime != 0) { content.Add(XmlBuilder.Property("holdTime", adsr.HoldTime)); }
-                if (adsr.DecayTime != 0) { content.Add(XmlBuilder.Property("decayTime", adsr.DecayTime)); }
-                if (adsr.ReleaseTime != 0) { content.Add(XmlBuilder.Property("releaseTime", adsr.ReleaseTime)); }
-                if (adsr.AttackShape != 0) { content.Add(XmlBuilder.Property("attackShape", adsr.AttackShape)); }
-                if (adsr.DecayShape != 0) { content.Add(XmlBuilder.Property("decayShape", adsr.DecayShape)); }
-                if (adsr.ReleaseShape != 0) { content.Add(XmlBuilder.Property("releaseShape", adsr.ReleaseShape)); }
-                if (adsr.FinalValue is not null && adsr.FinalValue.Value != 0) {
+                if (adsr.FinalValue is not null) {
                     content.Add(XmlBuilder.Property("finalValue", adsr.FinalValue.Value));
                 }
                 modulatorObject = XmlBuilder.Object("ADSRModulator", modulatorGuid, content.ToArray());
@@ -149,8 +145,8 @@ public partial class Decompiler {
             case RandomModulatorNode random: {
                 List<object> content = [
                     XmlBuilder.Property("nameOfPropertyBeingModulated", propertyName),
+                    XmlBuilder.Property("amount", random.Amount),
                 ];
-                if (random.Amount != 0) { content.Add(XmlBuilder.Property("amount", random.Amount)); }
                 modulatorObject = XmlBuilder.Object("RandomizerModulator", modulatorGuid, content.ToArray());
                 return true;
             }
@@ -158,11 +154,11 @@ public partial class Decompiler {
             case LFOModulatorNode lfo: {
                 List<object> content = [
                     XmlBuilder.Property("nameOfPropertyBeingModulated", propertyName),
+                    XmlBuilder.Property("rate", lfo.Rate),
+                    XmlBuilder.Property("amount", lfo.Amount),
+                    XmlBuilder.Property("phase", lfo.Phase),
+                    XmlBuilder.Property("shape", lfo.Shape),
                 ];
-                if (lfo.Rate != 0) { content.Add(XmlBuilder.Property("rate", lfo.Rate)); }
-                if (lfo.Amount != 0) { content.Add(XmlBuilder.Property("amount", lfo.Amount)); }
-                if (lfo.Phase != 0) { content.Add(XmlBuilder.Property("phase", lfo.Phase)); }
-                if (lfo.Shape != 0) { content.Add(XmlBuilder.Property("shape", lfo.Shape)); }
                 modulatorObject = XmlBuilder.Object("LFOModulator", modulatorGuid, content.ToArray());
                 return true;
             }
@@ -170,8 +166,8 @@ public partial class Decompiler {
             case SeekModulatorNode seek: {
                 List<object> content = [
                     XmlBuilder.Property("nameOfPropertyBeingModulated", propertyName),
+                    XmlBuilder.Property("seekSpeed", seek.SeekSpeedAscending),
                 ];
-                if (seek.SeekSpeedAscending != 0) { content.Add(XmlBuilder.Property("seekSpeed", seek.SeekSpeedAscending)); }
                 modulatorObject = XmlBuilder.Object("SeekModulator", modulatorGuid, content.ToArray());
                 return true;
             }
@@ -180,7 +176,7 @@ public partial class Decompiler {
                 List<object> content = [
                     XmlBuilder.Property("nameOfPropertyBeingModulated", propertyName),
                 ];
-                if (envelope.Amount is not null && envelope.Amount.Value != 0) {
+                if (envelope.Amount is not null) {
                     content.Add(XmlBuilder.Property("amount", envelope.Amount.Value));
                 }
                 modulatorObject = XmlBuilder.Object("SidechainModulator", modulatorGuid, content.ToArray());

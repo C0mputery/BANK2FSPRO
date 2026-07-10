@@ -322,12 +322,8 @@ public partial class Decompiler {
         if (name is not null) {
             busContent.Add(XmlBuilder.Property("name", name));
         }
-        if (body.MixerStrip.Volume != 0) {
-            busContent.Add(XmlBuilder.Property("volume", body.MixerStrip.Volume));
-        }
-        if (body.MixerStrip.Pitch != 0) {
-            busContent.Add(XmlBuilder.Property("pitch", body.MixerStrip.Pitch));
-        }
+        busContent.Add(XmlBuilder.Property("volume", body.MixerStrip.Volume));
+        busContent.Add(XmlBuilder.Property("pitch", body.MixerStrip.Pitch));
 
         if (eventNode is not null) {
             AppendOwnerAutomationAndModulators(documentObjects, busGuid, eventNode, timelineGuid, busContent);
@@ -352,23 +348,17 @@ public partial class Decompiler {
 
     private static XElement BuildAutomatablePropertiesObject(Guid automatableGuid, EventNode eventNode) {
         List<object> content = [];
-        if (eventNode.Flags is not null && (eventNode.Flags.Value & 0x2) != 0) {
-            content.Add(XmlBuilder.Property("isPersistent", true));
+        if (eventNode.Flags is not null) {
+            content.Add(XmlBuilder.Property("isPersistent", (eventNode.Flags.Value & 0x2) != 0));
         }
-        if (eventNode.MaximumPolyphony != 0) {
-            content.Add(XmlBuilder.Property("maxVoices", eventNode.MaximumPolyphony));
-        }
-        if (eventNode.PolyphonyLimitBehavior) {
-            content.Add(XmlBuilder.Property("voiceStealing", 1));
-        }
-        if (eventNode.Priority != 0) {
-            content.Add(XmlBuilder.Property("priority", eventNode.Priority));
-        }
-        if (eventNode.DopplerScale is not null && eventNode.DopplerScale.Value != 0) {
-            content.Add(XmlBuilder.Property("dopplerEnabled", true));
+        content.Add(XmlBuilder.Property("maxVoices", eventNode.MaximumPolyphony));
+        content.Add(XmlBuilder.Property("voiceStealing", eventNode.PolyphonyLimitBehavior ? 1 : 0));
+        content.Add(XmlBuilder.Property("priority", eventNode.Priority));
+        if (eventNode.DopplerScale is not null) {
+            content.Add(XmlBuilder.Property("dopplerEnabled", eventNode.DopplerScale.Value != 0));
             content.Add(XmlBuilder.Property("dopplerScale", eventNode.DopplerScale.Value));
         }
-        if (eventNode.TriggerCooldown is not null && eventNode.TriggerCooldown.Value != 0) {
+        if (eventNode.TriggerCooldown is not null) {
             content.Add(XmlBuilder.Property("triggerCooldown", eventNode.TriggerCooldown.Value));
         }
         return XmlBuilder.Object("EventAutomatableProperties", automatableGuid, content.ToArray());
@@ -417,13 +407,13 @@ public partial class Decompiler {
                 List<object> content = [];
                 AppendCommonInstrumentProperties(content, instrument.InstrumentBody, box);
                 AppendOwnerAutomationAndModulators(documentObjects, instrumentGuid, eventNode, timelineGuid, content);
+                content.Add(XmlBuilder.Relationship("event", eventInstrument.EventGuid.ToGuid()));
+                // Non-zero intensity is how banks mark snapshot instruments vs event instruments.
                 if (eventInstrument.SnapshotIntensity != 0) {
                     content.Add(XmlBuilder.Property("intensity", eventInstrument.SnapshotIntensity));
-                    content.Add(XmlBuilder.Relationship("event", eventInstrument.EventGuid.ToGuid()));
                     documentObjects.Add(XmlBuilder.Object("SnapshotModule", instrumentGuid, content.ToArray()));
                 }
                 else {
-                    content.Add(XmlBuilder.Relationship("event", eventInstrument.EventGuid.ToGuid()));
                     documentObjects.Add(XmlBuilder.Object("EventSound", instrumentGuid, content.ToArray()));
                 }
                 break;
@@ -455,30 +445,16 @@ public partial class Decompiler {
     }
 
     private static void AppendCommonInstrumentProperties(List<object> content, InstrumentNode? body, FTriggerBox box) {
-        if (box.StartTime != 0) {
-            content.Add(XmlBuilder.Property("start", box.StartTime / TimelineUnitsPerSecond));
-        }
-        if (box.Length != 0) {
-            content.Add(XmlBuilder.Property("length", box.Length / TimelineUnitsPerSecond));
-        }
+        content.Add(XmlBuilder.Property("start", box.StartTime / TimelineUnitsPerSecond));
+        content.Add(XmlBuilder.Property("length", box.Length / TimelineUnitsPerSecond));
         if (body is null) { return; }
 
-        if (body.TriggerChancePercent is not 0 and not 100) {
-            content.Add(XmlBuilder.Property("triggerProbabilityEnabled", true));
-            content.Add(XmlBuilder.Property("triggerProbability", body.TriggerChancePercent));
-        }
-        if (body.InitialSeekPercent != 0) {
-            content.Add(XmlBuilder.Property("startOffset", body.InitialSeekPercent));
-        }
-        if (body.Volume != 0) {
-            content.Add(XmlBuilder.Property("volume", body.Volume));
-        }
-        if (body.Pitch != 0) {
-            content.Add(XmlBuilder.Property("pitch", body.Pitch));
-        }
-        if (body.LoopCount != 0) {
-            content.Add(XmlBuilder.Property("looping", true));
-        }
+        content.Add(XmlBuilder.Property("triggerProbabilityEnabled", body.TriggerChancePercent is not 0 and not 100));
+        content.Add(XmlBuilder.Property("triggerProbability", body.TriggerChancePercent));
+        content.Add(XmlBuilder.Property("startOffset", body.InitialSeekPercent));
+        content.Add(XmlBuilder.Property("volume", body.Volume));
+        content.Add(XmlBuilder.Property("pitch", body.Pitch));
+        content.Add(XmlBuilder.Property("looping", body.LoopCount != 0));
     }
 
     private static uint ResolveEventOutputFormat(BaseBusNode masterBus) {

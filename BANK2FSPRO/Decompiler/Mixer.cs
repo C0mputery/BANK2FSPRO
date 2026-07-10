@@ -110,17 +110,14 @@ public partial class Decompiler {
         }
 
         List<object> busContent = [];
+        // 0 means "not overridden" in the bank — only emit the override pair when set.
         if (body.InputChannelLayout != 0) {
             busContent.Add(XmlBuilder.Property("overridingInputFormat", body.InputChannelLayout));
             busContent.Add(XmlBuilder.Property("inputFormatOverridden", true));
         }
-        if (body.MixerStrip.Volume != 0) {
-            busContent.Add(XmlBuilder.Property("volume", body.MixerStrip.Volume));
-        }
+        busContent.Add(XmlBuilder.Property("volume", body.MixerStrip.Volume));
         busContent.Add(XmlBuilder.Property("name", name));
-        if (body.MixerStrip.Pitch != 0) {
-            busContent.Add(XmlBuilder.Property("pitch", body.MixerStrip.Pitch));
-        }
+        busContent.Add(XmlBuilder.Property("pitch", body.MixerStrip.Pitch));
         if (masters is { Count: > 0 }) {
             busContent.Add(XmlBuilder.Relationship("masters", masters));
         }
@@ -149,6 +146,7 @@ public partial class Decompiler {
                 List<object> sendContent = [
                     XmlBuilder.Property("level", send.SendLevel),
                 ];
+                // 0 means default channel format — only emit when the bank overrides it.
                 if (send.InputChannelLayout != 0) {
                     sendContent.Add(XmlBuilder.Property("inputFormat", send.InputChannelLayout));
                 }

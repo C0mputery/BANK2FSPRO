@@ -35,9 +35,7 @@ public partial class Decompiler {
             if (!string.IsNullOrEmpty(marker.Name)) {
                 markerContent.Add(XmlBuilder.Property("name", marker.Name));
             }
-            if (marker.Length != 0) {
-                markerContent.Add(XmlBuilder.Property("length", marker.Length / TimelineUnitsPerSecond));
-            }
+            markerContent.Add(XmlBuilder.Property("length", marker.Length / TimelineUnitsPerSecond));
             markerContent.Add(XmlBuilder.Relationship("timeline", timelineGuid));
             markerContent.Add(XmlBuilder.Relationship("markerTrack", markerTrackGuid));
             documentObjects.Add(XmlBuilder.Object("NamedMarker", markerGuid, markerContent.ToArray()));
@@ -79,6 +77,7 @@ public partial class Decompiler {
             List<object> regionContent = [
                 XmlBuilder.Property("position", position),
                 XmlBuilder.Property("length", length),
+                XmlBuilder.Property("probability", region.TransitionChancePercent),
             ];
 
             List<Guid> conditionGuids = [];
@@ -98,10 +97,6 @@ public partial class Decompiler {
             }
             regionContent.Add(XmlBuilder.Relationship("timeline", timelineGuid));
             regionContent.Add(XmlBuilder.Relationship("markerTrack", markerTrackGuid));
-
-            if (region.TransitionChancePercent is not 0 and not 100) {
-                regionContent.Insert(2, XmlBuilder.Property("probability", region.TransitionChancePercent));
-            }
 
             documentObjects.Add(XmlBuilder.Object("TransitionRegion", transitionGuid, regionContent.ToArray()));
         }

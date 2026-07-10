@@ -79,8 +79,8 @@ internal static class EffectParameterMaps {
 
         if (builtIn.ParamEffectBody is { } paramBody) {
             AppendParameterizedProperties(dspType, paramBody, properties);
-            if (paramBody.SideChainEnabled) {
-                properties["sidechainEnabled"] = true;
+            if (dspType is EDSPTypeLegacy.FMOD_DSP_TYPE_COMPRESSOR) {
+                properties["sidechainEnabled"] = paramBody.SideChainEnabled;
             }
         }
 
@@ -94,12 +94,8 @@ internal static class EffectParameterMaps {
             if (!properties.ContainsKey("dryLevel")) {
                 properties["dryLevel"] = body.DryLevel;
             }
-            if (body.WetMix != 0) {
-                properties["wetMix"] = body.WetMix;
-            }
-            if (body.InputGain != 0) {
-                properties["inputGain"] = body.InputGain;
-            }
+            properties["wetMix"] = body.WetMix;
+            properties["inputGain"] = body.InputGain;
         }
 
         foreach ((string name, object value) in properties) {

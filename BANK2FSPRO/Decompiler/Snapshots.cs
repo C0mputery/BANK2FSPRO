@@ -135,9 +135,7 @@ public partial class Decompiler {
             if (body.BlendingSnapshot) {
                 snapshotContent.Add(XmlBuilder.Property("behavior", 1));
             }
-            if (body.Priority != 0) {
-                snapshotContent.Add(XmlBuilder.Property("priority", body.Priority));
-            }
+            snapshotContent.Add(XmlBuilder.Property("priority", body.Priority));
         }
         snapshotContent.Add(XmlBuilder.Relationship("mixer", _masterMixerGuid));
         snapshotContent.Add(XmlBuilder.Relationship("automatableProperties", automatableGuid));
@@ -152,7 +150,7 @@ public partial class Decompiler {
         }
 
         List<object> automatableContent = [];
-        if (body is not null && body.Intensity != 0 && body.Intensity != 100) {
+        if (body is not null) {
             automatableContent.Add(XmlBuilder.Property("snapshotIntensity", body.Intensity));
         }
 
