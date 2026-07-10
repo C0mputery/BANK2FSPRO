@@ -163,8 +163,8 @@ Built-in strip **Fader** and bus/event **Panner** stay; do not add a separate �
 4. Route event output to **`bus_sfx`**.
 5. Click empty editor space → **Event Macros** deck:
    - **Max Instances** = `4`
-   - **Stealing** = `Oldest`
-   - **Priority** = `64`
+   - **Stealing** = `Quietest`
+   - **Priority** = `Highest`
    - **Cooldown** = `0.25` (or any ≠ 0)
    - Enable **Doppler**, set **Doppler Scale** = `1.5`
    - Enable **Persistent**
