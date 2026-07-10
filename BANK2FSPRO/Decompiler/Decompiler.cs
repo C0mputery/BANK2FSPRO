@@ -26,6 +26,8 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
         ExtractSoundFiles();
         ExtractParameters();
         ExtractMixer();
+        ExtractEvents();
+        ExtractSnapshots();
     }
 
     private void CollectNodes() {

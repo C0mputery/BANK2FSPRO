@@ -1,0 +1,179 @@
+<div align="center">
+  
+# FModBankParser
+
+</div>
+<div align="center">
+
+[![License](https://img.shields.io/github/license/Masusder/FModBankParser?style=for-the-badge&color=blue)](https://github.com/Masusder/FModBankParser/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/badge/nuget-FModBankParser-blue?style=for-the-badge&color=dodgerblue)](https://github.com/Masusder/FModBankParser/packages)
+[![Stars](https://img.shields.io/github/stars/Masusder/FModBankParser?style=for-the-badge&color=F7DF1E)](https://github.com/Masusder/FModBankParser/stargazers)
+[![Releases](https://img.shields.io/github/downloads/Masusder/FModBankParser/total?style=for-the-badge&color=29903b&label=Downloads)](https://github.com/Masusder/FModBankParser/releases)
+
+**C# library for parsing and extracting FMOD Studio sound banks**
+
+[Installation](#installation) • [API Examples](#api-usage-examples) • [CLI Demo](#demo-cli-usage) • [Compatibility](#tested-fmod-versions)
+
+</div>
+
+FModBankParser allows you to **analyze, extract, and inspect** FMOD `.bank` files of any kind, including those used in commercial games and standalone FMOD projects.
+It supports a wide range of FMOD versions.
+
+> [!TIP]
+> This library was originally developed for the [FModel](https://github.com/4sval/FModel) project, if you are only interested in exploring or extracting FMOD audio from UE games you should check it out first.
+
+---
+
+## Vendored copy notes
+
+This tree is a local copy of [Masusder/FModBankParser](https://github.com/Masusder/FModBankParser) for use inside BANK2FSPRO.
+It includes the **AA** commit (`cbfe32a`) changes on top of upstream `main`:
+
+### Legacy DSP type layout (FMOD Studio 1.x / Engine &lt; 2.03)
+
+FMOD Engine 2.03 renumbered `FMOD_DSP_TYPE` and removed plugin/envelope-follower slots.
+Older banks (including Studio **1.10**, file version `0x65`) still store the pre-2.03 layout, so casting every value to the modern `EDSPType` mislabels effects.
+
+- Added `EDSPTypeLegacy` — full legacy enum (VST/Winamp/LADSPA, `ENVELOPEFOLLOWER`, etc.).
+- Added `DSPTypeResolver` — picks legacy vs modern names from bank file version (legacy when `fileVersion < FILEVERSION_EFFECT_WET_DRY` / `0x92`), with heuristics for values that only exist in one layout.
+- Updated `BuiltInEffectNode` to keep `DSPTypeRaw`, still expose `DSPType` as the modern cast, and add `GetDspTypeName(fileVersion)` / `GetLegacyDspType()`.
+
+### Snapshot binary layout fix
+
+- Corrected `FSnapshot` read order to **`EntryIndex` → `SnapshotGuid` → `TargetIndex` → `Value`** (previously GUID was read first).
+
+---
+
+## Disclaimer
+
+This project was **reverse-engineered by studying publicly available SDKs, documentation, and game binaries**, and is **not affiliated with or endorsed by Firelight Technologies** in any way.
+All work was independently performed to better understand FMOD soundbank formats within Unreal Engine projects.
+
+No proprietary, confidential, or internal source code from Firelight Technologies was used in the development of this library.
+
+This library is intended **only for parsing, reading, and extracting** FMOD `.bank`, `.assets.bank`, `.streams.bank`, and `.strings.bank` files.  
+It is **not designed** and will **never** be used to rebuild or modify soundbanks.
+
+---
+
+## Installation
+
+### From NuGet
+The easiest way to use FModBankParser is via NuGet:
+
+```bash
+dotnet add package FModBankParser
+```
+
+### From local project
+
+If you have a local copy of the project:
+
+```bash
+git clone https://github.com/Masusder/FModBankParser.git
+```
+
+You can include it directly in your .NET project:
+
+```bash
+dotnet add reference ../FModBankParser/FModBankParser.csproj
+```
+
+---
+
+## Demo CLI Usage
+
+Project comes with an example FModBankParser.Demo that you can use.
+
+Compile the project or download the demo executable from the [Releases](https://github.com/Masusder/FModBankParser/releases) tab, then run it from a terminal:
+
+```bash
+FModBankParser.Demo <file_or_folder> [--key <encryptionKey>] [--export-audio] [--output <outputFolder>]
+```
+
+### Options
+
+| Option                | Description                                                            |
+|-----------------------|------------------------------------------------------------------------|
+| `path`                | Path to a FMOD `.bank` file or folder containing soundbanks (required) |
+| `--key` `-k`          | Optional encryption key string for encrypted soundbanks                |
+| `--export-audio` `-e` | Flag if you want to export audio from the soundbanks                   |
+| `--output` `-o`       | Optional output folder for exported audio (default: `ExportedAudio`)   |
+| `--help` `-h`         | Print help options                                                     |
+
+## API Usage Examples
+
+### Load a Single FMOD Bank
+
+```csharp
+using FModBankParser;
+
+var reader = FModBankParser.LoadSoundBank("Master.bank");
+
+Console.WriteLine($"Soundbank: {reader.BankName} (GUID: {reader.GetBankGuid()})");
+Console.WriteLine($"FMOD Version: {reader.BankInfo.FileVersion}");
+Console.WriteLine($"Event count: {reader.EventNodes.Count}");
+```
+
+### Load All Banks in a Directory
+
+```csharp
+using FModBankParser;
+
+var readers = FModBankParser.LoadSoundBanks("C:\\Games\\MyProject\\Content\\FMOD");
+
+foreach (var reader in readers)
+    Console.WriteLine($"Loaded bank: {reader.BankName}");
+```
+
+### Audio Export
+> [!Important]
+> FSB5 audio extraction is handled via [Fmod5Sharp](https://github.com/SamboyCoding/Fmod5Sharp) library, make sure to check it out.
+
+```csharp
+using FModBankParser;
+
+// Load a sound bank
+var reader = FModBankParser.LoadSoundBank("Master.bank")
+var outDir = new DirectoryInfo("ExportedAudio")
+
+// Export all embedded audio
+var exportedAudio = FModBankParser.ExportAudio(reader, outDir);
+
+if (exportedAudio.Success)
+{
+    Console.WriteLine($"Exported {exportedAudio.FilesExported} audio files to: {outDir.FullName}");
+}
+else
+{
+    Console.WriteLine($"No audio files were exported for {file.Name}.");
+}
+```
+
+## Tested FMOD Versions
+
+| FMOD Version  | Game(s)                                                                                               |
+|---------------|-------------------------------------------------------------------------------------------------------|
+| `0x33`        | All is Dust                                                                                           |
+| `0x3E`        | Interloper                                                                                            |
+| `0x40`        | Ancestory                                                                                             |
+| `0x44`        | Quanero VR                                                                                            |
+| `0x4A`        | Quanero VR                                                                                            |
+| `0x87`        | Train Life – A Railway Simulator (UE 4.27)                                                            |
+| `0x8E`        | Dispatch Demo, Militsioner, The Day Before, Ghostrunner 2, Epic Mickey Rebrushed, Daimon Blades, etc. |
+| `0x92`        | Dead as Disco Demo, Rage Quit, Spongebob: Titans of the Tide, Groovity, Dreadbone, Lilith, etc.       |
+
+<br>
+
+> [!NOTE]
+> For a full list of tested versions check [this](https://github.com/Masusder/FModBankParser/blob/main/FModBankParser/FModBankParser.cs#L13) summary.
+
+---
+
+## Acknowledgements
+- Special thanks to [LongerWarrior](https://github.com/LongerWarrior) for the help.
+
+---
+
+## License
+FModBankParser is licensed under [Apache License 2.0](https://github.com/Masusder/FModBankParser/blob/main/LICENSE), licenses of third-party libraries used are listed [here](https://github.com/Masusder/FModBankParser/blob/main/NOTICE).

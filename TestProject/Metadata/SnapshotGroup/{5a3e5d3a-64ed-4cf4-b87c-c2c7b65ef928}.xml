@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.01.10.00">
+    <object class="SnapshotGroup" id="{5a3e5d3a-64ed-4cf4-b87c-c2c7b65ef928}">
+        <property name="name">
+            <value>snap_group_mix</value>
+        </property>
+        <relationship name="folder">
+            <destination>{8d52b811-7370-4176-9c8f-a260ef138ff4}</destination>
+        </relationship>
+        <relationship name="items">
+            <destination>{4263b85c-e641-4bb5-aef0-3ae60d715bbd}</destination>
+        </relationship>
+    </object>
+</objects>

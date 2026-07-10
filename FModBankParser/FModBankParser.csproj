@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Authors>Masusder</Authors>
+		<PackageId>FModBankParser</PackageId>
+		<PackageTags>FMOD;Soundbank;Audio</PackageTags>
+		<Nullable>enable</Nullable>
+		<Version>1.2.0</Version>
+		<Title>FMOD Soundbank Parser</Title>
+		<Description>FMOD Soundbank file parser library for .NET</Description>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageProjectUrl>https://github.com/Masusder/FModBankParser</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Masusder/FModBankParser.git</RepositoryUrl>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Fmod5Sharp" Version="3.1.0" />
+		<PackageReference Include="SubstreamSharp" Version="1.0.3" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+</Project>

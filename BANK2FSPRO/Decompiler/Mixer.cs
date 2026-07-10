@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Xml.Linq;
 using FModBankParser.Nodes;
 using FModBankParser.Nodes.Buses;
@@ -17,7 +18,7 @@ public partial class Decompiler {
     }
 
     private void CacheBankMasterBusGuid() {
-        foreach ((Guid guid, BaseBusNode node) in _collectedBank.BusNodes) {
+        foreach (Guid guid in _collectedBank.BusNodes.Keys) {
             if (!TryGetStringTablePath(guid, out string path)) { continue; }
             if (path != "bus:/") { continue; }
             _bankMasterBusGuid = guid;
@@ -79,16 +80,11 @@ public partial class Decompiler {
             }
 
             string name = path["vca:/".Length..];
-            List<object> content = [
-                XmlBuilder.Property("name", name),
-                XmlBuilder.Relationship("mixer", _masterMixerGuid),
-            ];
-            if (vca.MixerStrip.Volume != 0) {
-                content.Insert(0, XmlBuilder.Property("volume", vca.MixerStrip.Volume));
-            }
-
             XDocument document = XmlBuilder.CreateDocument(
-                XmlBuilder.Object("MixerVCA", vcaGuid, content.ToArray())
+                XmlBuilder.Object("MixerVCA", vcaGuid,
+                    XmlBuilder.Property("name", name),
+                    XmlBuilder.Relationship("mixer", _masterMixerGuid)
+                )
             );
             document.Save(Path.Combine(_vcaMetadataDirectory, $"{vcaGuid.AsFmodStringFormat()}.xml"));
         }
