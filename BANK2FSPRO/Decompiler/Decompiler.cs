@@ -108,7 +108,7 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     XmlBuilder.Relationship("parameter", parameterNode.BaseGuid.ToGuid())
                 ),
                 XmlBuilder.Object("GameParameter", parameterNode.BaseGuid.ToGuid(),
-                    XmlBuilder.Property("parameterType", parameterNode.Type),
+                    XmlBuilder.Property("parameterType", (uint)parameterNode.Type),
                     XmlBuilder.Property("maximum", parameterNode.Maximum),
                     XmlBuilder.Property("minimum", parameterNode.Minimum),
                     XmlBuilder.Property("initialValue", parameterNode.DefaultValue)
