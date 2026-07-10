@@ -83,12 +83,12 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     bool isStreaming = waveformResource.LoadingMode == EWaveformLoadingMode.WaveformLoadingMode_StreamFromDisk; // TODO works for my bank
                     List<object> audioFileContent = [
                         XmlBuilder.Property("assetPath", fileName),
+                        XmlBuilder.Property("isStreaming", isStreaming),
                         XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000.0),
                         XmlBuilder.Property("channelCount", samples.Metadata.Channels),
                         XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
                         XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid),
                     ];
-                    if (isStreaming) { audioFileContent.Add(XmlBuilder.Property("isStreaming", "true")); }
 
                     XDocument document = XmlBuilder.CreateDocument(XmlBuilder.Object("AudioFile", soundGuid, audioFileContent.ToArray()));
                     document.Save(Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml"));
