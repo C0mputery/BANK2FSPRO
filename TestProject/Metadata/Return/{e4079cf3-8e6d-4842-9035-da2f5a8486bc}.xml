@@ -8,7 +8,7 @@
             <value>true</value>
         </property>
         <property name="name">
-            <value>Reverb</value>
+            <value>bus_reverb_return</value>
         </property>
         <relationship name="effectChain">
             <destination>{60d0dfc2-420d-4924-949c-8a3110565d8c}</destination>
