@@ -14,6 +14,7 @@ public partial class Decompiler {
     private string _encodingSettingMetadataDirectory = string.Empty;
     private string _effectPresetFolderMetadataDirectory = string.Empty;
     private string _parameterPresetFolderMetadataDirectory = string.Empty;
+    private string _parameterPresetMetadataDirectory = string.Empty;
     private string _snapshotGroupMetadataDirectory = string.Empty;
 
     private void SetupDirectories() {
@@ -28,6 +29,7 @@ public partial class Decompiler {
         _encodingSettingMetadataDirectory = Path.Combine(_metadataDirectory, "EncodingSetting");
         _effectPresetFolderMetadataDirectory = Path.Combine(_metadataDirectory, "EffectPresetFolder");
         _parameterPresetFolderMetadataDirectory = Path.Combine(_metadataDirectory, "ParameterPresetFolder");
+        _parameterPresetMetadataDirectory = Path.Combine(_metadataDirectory, "ParameterPreset");
         _snapshotGroupMetadataDirectory = Path.Combine(_metadataDirectory, "SnapshotGroup");
 
         if (Directory.Exists(outputDirectory)) { Directory.Delete(outputDirectory, true); }
@@ -44,6 +46,7 @@ public partial class Decompiler {
         Directory.CreateDirectory(_encodingSettingMetadataDirectory);
         Directory.CreateDirectory(_effectPresetFolderMetadataDirectory);
         Directory.CreateDirectory(_parameterPresetFolderMetadataDirectory);
+        Directory.CreateDirectory(_parameterPresetMetadataDirectory);
         Directory.CreateDirectory(_snapshotGroupMetadataDirectory);
     }
 }

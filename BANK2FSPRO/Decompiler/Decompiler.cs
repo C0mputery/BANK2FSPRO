@@ -81,7 +81,6 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     if (!_collectedBank.WavEntries.TryGetValue(soundGuid, out WaveformResourceNode? waveformResource)) { throw new NotImplementedException(); } // TODO works for my bank
 
                     bool isStreaming = waveformResource.LoadingMode == EWaveformLoadingMode.WaveformLoadingMode_StreamFromDisk; // TODO works for my bank
-                    DebugHelper.ComboLog($"{waveformResource.LoadingMode}");
                     List<object> audioFileContent = [
                         XmlBuilder.Property("assetPath", fileName),
                         XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000.0),
@@ -100,9 +99,22 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
     private void ExtractParameters() {
         foreach (ParameterNode parameterNode in _collectedBank.ParameterNodes.Values) {
-            foreach (string a in parameterNode.Labels) {
-                DebugHelper.ComboLog($"{a}");
-            }
+            Guid parameterPresetGuid = Guid.DeterministicGuid(SpecialGuids.ParameterNamespace, parameterNode.Name);
+            
+            XDocument document = XmlBuilder.CreateDocument(
+                XmlBuilder.Object("ParameterPreset", parameterPresetGuid,
+                    XmlBuilder.Property("name", parameterNode.Name),
+                    XmlBuilder.Relationship("folder", _masterParameterPresetFolderGuid),
+                    XmlBuilder.Relationship("parameter", parameterNode.BaseGuid.ToGuid())
+                ),
+                XmlBuilder.Object("GameParameter", parameterNode.BaseGuid.ToGuid(),
+                    XmlBuilder.Property("parameterType", parameterNode.Type),
+                    XmlBuilder.Property("maximum", parameterNode.Maximum),
+                    XmlBuilder.Property("minimum", parameterNode.Minimum),
+                    XmlBuilder.Property("initialValue", parameterNode.DefaultValue)
+                )
+            );
+            document.Save(Path.Combine(_parameterPresetMetadataDirectory, $"{parameterPresetGuid.AsFmodStringFormat()}.xml"));
         }
     }
 }

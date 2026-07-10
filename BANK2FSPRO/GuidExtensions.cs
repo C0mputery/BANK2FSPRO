@@ -5,10 +5,11 @@ namespace BANK2FSPRO;
 
 public static class GuidExtensions {
     extension(Guid) {
-        public static Guid DeterministicGuid(Guid namespaceGuid, string name) {
+        public static Guid DeterministicGuid(Guid namespaceGuid, string name) { return DeterministicGuid(namespaceGuid, Encoding.UTF8.GetBytes(name)); }
+
+        public static Guid DeterministicGuid(Guid namespaceGuid, byte[] nameBytes) {
             using SHA1 sha1 = SHA1.Create();
             byte[] namespaceBytes = namespaceGuid.ToByteArray();
-            byte[] nameBytes = Encoding.UTF8.GetBytes(name);
 
             byte[] combinedBytes = new byte[namespaceBytes.Length + nameBytes.Length];
             Buffer.BlockCopy(namespaceBytes, 0, combinedBytes, 0, namespaceBytes.Length);
