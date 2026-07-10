@@ -16,6 +16,7 @@ public partial class Decompiler {
     private Guid _masterEffectChainGuid = Guid.Empty;
     private Guid _masterPannerGuid = Guid.Empty;
     private Guid _masterFaderGuid = Guid.Empty;
+    private Guid _bankMasterBusGuid = Guid.Empty;
 
     private void SetupGuids() {
         _masterAssetFolderGuid = Guid.DeterministicGuid(SpecialGuids.GeneralNamespace, $"{projectName}/MasterAssetFolder");

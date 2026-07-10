@@ -16,6 +16,9 @@ public partial class Decompiler {
     private string _parameterPresetFolderMetadataDirectory = string.Empty;
     private string _parameterPresetMetadataDirectory = string.Empty;
     private string _snapshotGroupMetadataDirectory = string.Empty;
+    private string _returnMetadataDirectory = string.Empty;
+    private string _groupMetadataDirectory = string.Empty;
+    private string _vcaMetadataDirectory = string.Empty;
 
     private void SetupDirectories() {
         _assetsDirectory = Path.Combine(outputDirectory, "Assets");
@@ -31,6 +34,9 @@ public partial class Decompiler {
         _parameterPresetFolderMetadataDirectory = Path.Combine(_metadataDirectory, "ParameterPresetFolder");
         _parameterPresetMetadataDirectory = Path.Combine(_metadataDirectory, "ParameterPreset");
         _snapshotGroupMetadataDirectory = Path.Combine(_metadataDirectory, "SnapshotGroup");
+        _returnMetadataDirectory = Path.Combine(_metadataDirectory, "Return");
+        _groupMetadataDirectory = Path.Combine(_metadataDirectory, "Group");
+        _vcaMetadataDirectory = Path.Combine(_metadataDirectory, "VCA");
 
         if (Directory.Exists(outputDirectory)) { Directory.Delete(outputDirectory, true); }
 
@@ -48,5 +54,8 @@ public partial class Decompiler {
         Directory.CreateDirectory(_parameterPresetFolderMetadataDirectory);
         Directory.CreateDirectory(_parameterPresetMetadataDirectory);
         Directory.CreateDirectory(_snapshotGroupMetadataDirectory);
+        Directory.CreateDirectory(_returnMetadataDirectory);
+        Directory.CreateDirectory(_groupMetadataDirectory);
+        Directory.CreateDirectory(_vcaMetadataDirectory);
     }
 }

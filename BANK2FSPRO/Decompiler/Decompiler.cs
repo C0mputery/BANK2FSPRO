@@ -24,8 +24,8 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
         //_collectedBank.Debug();
         
         ExtractSoundFiles();
-        
         ExtractParameters();
+        ExtractMixer();
     }
 
     private void CollectNodes() {
@@ -116,5 +116,9 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
             );
             document.Save(Path.Combine(_parameterPresetMetadataDirectory, $"{parameterPresetGuid.AsFmodStringFormat()}.xml"));
         }
+    }
+    
+    private bool TryGetStringTablePath(Guid guid, out string path) {
+        return _stringBank.StringTable!.RadixTree!.TryGetString(new FModGuid(guid), out path);
     }
 }
