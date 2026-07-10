@@ -14,18 +14,18 @@ namespace BANK2FSPRO;
 public partial class Decompiler(string outputDirectory, FModReader stringBank, FModReader masterBank, FModReader[] banks, string projectName = "DecompiledProject") {
     private readonly FModReader _stringBank = stringBank;
     private readonly CollectedBank _collectedBank = new CollectedBank();
-
-    public readonly Dictionary<string, FModGuid> SoundFileReferences = new Dictionary<string, FModGuid>();
-
+    
     public void Decompile() {
         SetupGuids();
         SetupDirectories();
         SetupProjectFiles();
 
         CollectNodes();
-        _collectedBank.Debug();
+        //_collectedBank.Debug();
         
         ExtractSoundFiles();
+        
+        ExtractParameters();
     }
 
     private void CollectNodes() {
@@ -66,8 +66,6 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
     private void ExtractSoundFiles() {
         foreach (FModReader bank in banks) {
-            if (bank.SoundBankData.Count == 0) { continue; }
-
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
                 foreach (FmodSample samples in soundBank.Samples) {
                     if (samples.Name == null) { throw new NotImplementedException(); } // TODO works for my bank
@@ -82,10 +80,11 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     if (!_collectedBank.SoundNameToGuid.TryGetValue(samples.Name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
                     if (!_collectedBank.WavEntries.TryGetValue(soundGuid, out WaveformResourceNode? waveformResource)) { throw new NotImplementedException(); } // TODO works for my bank
 
-                    bool isStreaming = waveformResource.LoadingMode == EWaveformLoadingMode.WaveformLoadingMode_StreamFromDisk;
+                    bool isStreaming = waveformResource.LoadingMode == EWaveformLoadingMode.WaveformLoadingMode_StreamFromDisk; // TODO works for my bank
+                    DebugHelper.ComboLog($"{waveformResource.LoadingMode}");
                     List<object> audioFileContent = [
                         XmlBuilder.Property("assetPath", fileName),
-                        XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
+                        XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000.0),
                         XmlBuilder.Property("channelCount", samples.Metadata.Channels),
                         XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
                         XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid),
@@ -95,6 +94,14 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
                     XDocument document = XmlBuilder.CreateDocument(XmlBuilder.Object("AudioFile", soundGuid, audioFileContent.ToArray()));
                     document.Save(Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml"));
                 }
+            }
+        }
+    }
+
+    private void ExtractParameters() {
+        foreach (ParameterNode parameterNode in _collectedBank.ParameterNodes.Values) {
+            foreach (string a in parameterNode.Labels) {
+                DebugHelper.ComboLog($"{a}");
             }
         }
     }
