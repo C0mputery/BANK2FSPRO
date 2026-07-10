@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using Fmod5Sharp.FmodTypes;
 using FModBankParser;
+using FModBankParser.Enums;
 using FModBankParser.Nodes;
 using FModBankParser.Nodes.Buses;
 using FModBankParser.Nodes.Effects;
@@ -65,12 +66,7 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
     private void ExtractSoundFiles() {
         foreach (FModReader bank in banks) {
-            
             if (bank.SoundBankData.Count == 0) { continue; }
-
-            string bankName = Path.GetFileNameWithoutExtension(bank.BankName);
-            string soundFileDirectory = Path.Combine(_assetsDirectory, bankName);
-            Directory.CreateDirectory(soundFileDirectory);
 
             foreach (FmodSoundBank soundBank in bank.SoundBankData) {
                 foreach (FmodSample samples in soundBank.Samples) {
@@ -78,23 +74,25 @@ public partial class Decompiler(string outputDirectory, FModReader stringBank, F
 
                     if (!samples.RebuildAsStandardFileFormat(out byte[]? data, out string? extension)) { throw new NotImplementedException(); } // TODO works for my bank
                     string fileName = $"{samples.Name}.{extension}";
-                    string filePath = Path.Combine(soundFileDirectory, fileName);
+                    string filePath = Path.Combine(_assetsDirectory, fileName);
                     File.WriteAllBytes(filePath, data);
 
                     if (samples.Metadata == null) { throw new NotImplementedException(); } // TODO works for my bank
 
                     if (!_collectedBank.SoundNameToGuid.TryGetValue(samples.Name, out Guid soundGuid)) { throw new NotImplementedException(); } // TODO works for my bank
+                    if (!_collectedBank.WavEntries.TryGetValue(soundGuid, out WaveformResourceNode? waveformResource)) { throw new NotImplementedException(); } // TODO works for my bank
 
-                    string assetPath = $"{bankName}/{fileName}";
-                    XDocument document = XmlBuilder.CreateDocument(
-                        XmlBuilder.Object("AudioFile", soundGuid,
-                            XmlBuilder.Property("assetPath", assetPath),
-                            XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
-                            XmlBuilder.Property("channelCount", samples.Metadata.Channels),
-                            XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
-                            XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid)
-                        )
-                    );
+                    bool isStreaming = waveformResource.LoadingMode == EWaveformLoadingMode.WaveformLoadingMode_StreamFromDisk;
+                    List<object> audioFileContent = [
+                        XmlBuilder.Property("assetPath", fileName),
+                        XmlBuilder.Property("frequencyInKHz", samples.Metadata.Frequency / 1000),
+                        XmlBuilder.Property("channelCount", samples.Metadata.Channels),
+                        XmlBuilder.Property("length", samples.Metadata.SampleCount / (double)samples.Metadata.Frequency),
+                        XmlBuilder.Relationship("masterAssetFolder", _masterAssetFolderGuid),
+                    ];
+                    if (isStreaming) { audioFileContent.Add(XmlBuilder.Property("isStreaming", "true")); }
+
+                    XDocument document = XmlBuilder.CreateDocument(XmlBuilder.Object("AudioFile", soundGuid, audioFileContent.ToArray()));
                     document.Save(Path.Combine(_audioFileMetadataDirectory, $"{soundGuid.AsFmodStringFormat()}.xml"));
                 }
             }
