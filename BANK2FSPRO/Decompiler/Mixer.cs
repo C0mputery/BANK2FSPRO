@@ -157,26 +157,13 @@ public partial class Decompiler {
                 break;
 
             case BuiltInEffectNode builtIn: {
-                EDSPTypeLegacy dspType = (EDSPTypeLegacy)builtIn.DSPType;
+                EDSPTypeLegacy dspType = (EDSPTypeLegacy)(uint)builtIn.GetLegacyDspType();
                 if (dspType is EDSPTypeLegacy.FMOD_DSP_TYPE_FADER) { break; }
 
                 string className = GetBuiltInEffectClassName(dspType);
                 effectIds.Add(effectGuid);
                 List<object> effectContent = [];
-                if (builtIn.EffectBody is not null) {
-                    if (builtIn.EffectBody.WetLevel != 0) {
-                        effectContent.Add(XmlBuilder.Property("wetLevel", builtIn.EffectBody.WetLevel));
-                    }
-                    if (builtIn.EffectBody.DryLevel != 0) {
-                        effectContent.Add(XmlBuilder.Property("dryLevel", builtIn.EffectBody.DryLevel));
-                    }
-                    if (builtIn.EffectBody.WetMix != 0) {
-                        effectContent.Add(XmlBuilder.Property("wetMix", builtIn.EffectBody.WetMix));
-                    }
-                    if (builtIn.EffectBody.InputGain != 0) {
-                        effectContent.Add(XmlBuilder.Property("inputGain", builtIn.EffectBody.InputGain));
-                    }
-                }
+                EffectParameterMaps.AppendBuiltInEffectProperties(builtIn, dspType, effectContent);
                 documentObjects.Add(XmlBuilder.Object(className, effectGuid, effectContent.ToArray()));
                 break;
             }
