@@ -1,3 +1,23 @@
+## Vendored copy notes
+
+This tree is a local copy of [Masusder/FModBankParser](https://github.com/Masusder/FModBankParser) for use inside BANK2FSPRO.
+It includes the **AA** commit (`cbfe32a`) changes on top of upstream `main`:
+
+### Legacy DSP type layout (FMOD Studio 1.x / Engine &lt; 2.03)
+
+FMOD Engine 2.03 renumbered `FMOD_DSP_TYPE` and removed plugin/envelope-follower slots.
+Older banks (including Studio **1.10**, file version `0x65`) still store the pre-2.03 layout, so casting every value to the modern `EDSPType` mislabels effects.
+
+- Added `EDSPTypeLegacy` — full legacy enum (VST/Winamp/LADSPA, `ENVELOPEFOLLOWER`, etc.).
+- Added `DSPTypeResolver` — picks legacy vs modern names from bank file version (legacy when `fileVersion < FILEVERSION_EFFECT_WET_DRY` / `0x92`), with heuristics for values that only exist in one layout.
+- Updated `BuiltInEffectNode` to keep `DSPTypeRaw`, still expose `DSPType` as the modern cast, and add `GetDspTypeName(fileVersion)` / `GetLegacyDspType()`.
+
+### Snapshot binary layout fix
+
+- Corrected `FSnapshot` read order to **`EntryIndex` → `SnapshotGuid` → `TargetIndex` → `Value`** (previously GUID was read first).
+
+---
+
 <div align="center">
   
 # FModBankParser
@@ -21,26 +41,6 @@ It supports a wide range of FMOD versions.
 
 > [!TIP]
 > This library was originally developed for the [FModel](https://github.com/4sval/FModel) project, if you are only interested in exploring or extracting FMOD audio from UE games you should check it out first.
-
----
-
-## Vendored copy notes
-
-This tree is a local copy of [Masusder/FModBankParser](https://github.com/Masusder/FModBankParser) for use inside BANK2FSPRO.
-It includes the **AA** commit (`cbfe32a`) changes on top of upstream `main`:
-
-### Legacy DSP type layout (FMOD Studio 1.x / Engine &lt; 2.03)
-
-FMOD Engine 2.03 renumbered `FMOD_DSP_TYPE` and removed plugin/envelope-follower slots.
-Older banks (including Studio **1.10**, file version `0x65`) still store the pre-2.03 layout, so casting every value to the modern `EDSPType` mislabels effects.
-
-- Added `EDSPTypeLegacy` — full legacy enum (VST/Winamp/LADSPA, `ENVELOPEFOLLOWER`, etc.).
-- Added `DSPTypeResolver` — picks legacy vs modern names from bank file version (legacy when `fileVersion < FILEVERSION_EFFECT_WET_DRY` / `0x92`), with heuristics for values that only exist in one layout.
-- Updated `BuiltInEffectNode` to keep `DSPTypeRaw`, still expose `DSPType` as the modern cast, and add `GetDspTypeName(fileVersion)` / `GetLegacyDspType()`.
-
-### Snapshot binary layout fix
-
-- Corrected `FSnapshot` read order to **`EntryIndex` → `SnapshotGuid` → `TargetIndex` → `Value`** (previously GUID was read first).
 
 ---
 
